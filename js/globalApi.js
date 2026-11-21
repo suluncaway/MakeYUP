@@ -102,7 +102,7 @@ export async function searchGlobalProducts({
   brand = "",
   categoryTerm = "",
   page = 1,
-  pageSize = 24
+  pageSize = 60
 } = {}) {
   const combinedTerms = [query, brand, categoryTerm]
     .map((s) => String(s || "").trim())

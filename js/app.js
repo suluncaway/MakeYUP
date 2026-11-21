@@ -301,7 +301,7 @@ const state = {
   globalBrand: "",
   globalCategoryId: "all",
   globalGroupByBrand: true,
-  globalOnlyWithInci: true,
+  globalOnlyWithInci: false,
   globalOnlyVegan: false,
   globalPage: 1,
   globalTotalCount: 0,
@@ -1284,11 +1284,11 @@ function renderGlobalResults() {
     ? state.globalTotalCount.toLocaleString("tr-TR")
     : String(visible.length);
 
-  globalCountEl.textContent = state.globalLoading
+  globalCountEl.textContent = state.globalLoading && state.globalItems.length === 0
     ? "Dünya veritabanı taranıyor..."
-    : `${totalFormatted} küresel sonuç · ${visible.length} gösteriliyor`;
+    : `${totalFormatted} küresel ürün · ${visible.length} yüklendi`;
 
-  globalLoadMoreWrapEl.hidden = !state.globalHasMore || state.globalLoading;
+  globalLoadMoreWrapEl.hidden = !state.globalHasMore;
 
   if (state.globalLoading && state.globalItems.length === 0) {
     globalResultsContainerEl.innerHTML = `
@@ -1375,6 +1375,7 @@ function renderGlobalResults() {
 }
 
 async function fetchGlobalCatalog({ append = false } = {}) {
+  if (state.globalLoading) return;
   const catObj = GLOBAL_CATEGORIES.find((c) => c.id === state.globalCategoryId);
   const nextPage = append ? state.globalPage + 1 : 1;
 
@@ -1384,7 +1385,7 @@ async function fetchGlobalCatalog({ append = false } = {}) {
     renderGlobalResults();
   } else {
     globalLoadMoreBtn.disabled = true;
-    globalLoadMoreBtn.textContent = "Yükleniyor...";
+    globalLoadMoreBtn.textContent = "Sonraki ürünler yükleniyor...";
   }
 
   try {
@@ -1393,7 +1394,7 @@ async function fetchGlobalCatalog({ append = false } = {}) {
       brand: state.globalBrand,
       categoryTerm: catObj?.term || "",
       page: nextPage,
-      pageSize: 24
+      pageSize: 60
     });
 
     const enrichedBatch = res.products.map((p) => {
@@ -1474,6 +1475,27 @@ globalOnlyVeganBtn.addEventListener("click", () => {
 globalLoadMoreBtn.addEventListener("click", () => {
   fetchGlobalCatalog({ append: true });
 });
+
+// Aşağı kaydırdıkça otomatik olarak sonraki ürünleri yükle (Infinite Scroll)
+if ("IntersectionObserver" in window) {
+  const infiniteObserver = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (
+          entry.isIntersecting &&
+          state.activeView === "global" &&
+          state.globalHasMore &&
+          !state.globalLoading &&
+          state.globalItems.length > 0
+        ) {
+          fetchGlobalCatalog({ append: true });
+        }
+      }
+    },
+    { rootMargin: "400px" }
+  );
+  infiniteObserver.observe(globalLoadMoreWrapEl);
+}
 
 globalResultsContainerEl.addEventListener("click", (e) => {
   const openBtn = e.target.closest("[data-open-product]");
