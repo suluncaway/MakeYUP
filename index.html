@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MakeYUP — Küresel Makyaj &amp; Cilt Bakımı İçerik, Sağlık &amp; Vegan Rehberi</title>
+  <meta
+    name="description"
+    content="Dünyadaki makyaj malzemeleri ve cilt bakım ürünlerinin INCI içeriklerini canlı arama ve barkod tarama ile görsel analiz eden açık kaynaklı rehber."
+  />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <!-- Üst Gezinme Çubuğu -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="#katalog" class="brand" aria-label="MakeYUP Ana Sayfa">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14 3C8.5 7.2 6 12.2 6 16.8C6 21.4 9.6 25 14 25C18.4 25 22 21.4 22 16.8C22 12.2 19.5 7.2 14 3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+            <path d="M14 10V21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M14 15L18 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span class="brand-text">
+          <span class="brand-name">MakeYUP</span>
+          <span class="brand-sub">Temiz &amp; Vegan Makyaj Rehberi</span>
+        </span>
+      </a>
+
+      <nav class="main-nav" aria-label="Ana Menü">
+        <button type="button" class="nav-tab is-active" data-view="global">
+          🌍 Dünya Kataloğu
+        </button>
+        <button type="button" class="nav-tab" data-view="catalog">
+          Öne Çıkanlar
+        </button>
+        <button type="button" class="nav-tab" data-view="brands">
+          Markalar
+        </button>
+        <button type="button" class="nav-tab" data-view="scanner">
+          📷 Barkod Tara
+        </button>
+        <button type="button" class="nav-tab" data-view="analyzer">
+          İçerik Analizörü
+        </button>
+        <button type="button" class="nav-tab" data-view="glossary">
+          Sözlük
+        </button>
+      </nav>
+
+      <div class="header-actions">
+        <button
+          type="button"
+          id="compareOpenBtn"
+          class="btn btn-soft compare-trigger"
+          aria-label="Seçili ürünleri karşılaştır"
+          hidden
+        >
+          <span>Karşılaştır</span>
+          <span class="badge-count" id="compareCount">0</span>
+        </button>
+
+        <button
+          type="button"
+          id="themeToggle"
+          class="icon-btn"
+          aria-label="Tema değiştir"
+          title="Açık / Koyu Tema"
+        >
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="4"/>
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+          </svg>
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero Bölümü -->
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <div class="eyebrow">
+            <span class="eyebrow-dot" aria-hidden="true"></span>
+            Açık Kaynaklı INCI İçerik &amp; Vegan Rehberi
+          </div>
+          <h1>Makyaj ve cilt bakımının içinde <em>ne var?</em></h1>
+          <p class="hero-lead">
+            Dünyadaki on binlerce makyaj ve cilt bakım ürününü marka marka canlı ara veya barkodunu okut.
+            Ürünlerin <strong>sağlık skorunu</strong>, <strong>vegan olup olmadığını</strong> ve
+            her bir bileşenin cildine etkisini tek bakışta gör.
+          </p>
+          <div class="hero-cta">
+            <button type="button" class="btn btn-primary" data-jump="global">
+              🌍 Dünyadaki Tüm Ürünleri Ara
+            </button>
+            <button type="button" class="btn btn-outline" data-jump="scanner">
+              📷 Barkod Tarat
+            </button>
+            <button type="button" class="btn btn-ghost" data-jump="analyzer">
+              İçerik Yapıştır
+            </button>
+          </div>
+        </div>
+
+        <!-- Görsel Bilgi Kartı -->
+        <aside class="hero-legend" aria-label="Değerlendirme Göstergeleri">
+          <div class="legend-title">Görsel Puanlama Sistemi</div>
+          <div class="legend-list">
+            <div class="legend-item">
+              <span class="legend-pill pill-safe">78 – 100</span>
+              <div>
+                <strong>Sağlıklı &amp; Temiz</strong>
+                <p>Cilt dostu, düşük riskli ve temiz formül.</p>
+              </div>
+            </div>
+            <div class="legend-item">
+              <span class="legend-pill pill-moderate">52 – 77</span>
+              <div>
+                <strong>Dikkatli Kullanım</strong>
+                <p>Parfüm, silikon veya hassasiyet yapabilecek maddeler içerir.</p>
+              </div>
+            </div>
+            <div class="legend-item">
+              <span class="legend-pill pill-high">0 – 51</span>
+              <div>
+                <strong>Riskli İçerik</strong>
+                <p>Paraben, talk, BHT gibi kaçınılması önerilen maddeler içerir.</p>
+              </div>
+            </div>
+            <div class="legend-divider"></div>
+            <div class="legend-vegan-row">
+              <span class="tag tag-vegan">
+                <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M16.5 3.5c-5.5 0-10 2.5-12 7.5-.7 1.7-.9 3.6-.7 5.5 1.9.2 3.8 0 5.5-.7 5-2 7.5-6.5 7.2-12.3zm-8.6 9.8c-.4.4-1 .4-1.4 0s-.4-1 0-1.4l4.5-4.5c.4-.4 1-.4 1.4 0s.4 1 0 1.4l-4.5 4.5z"/></svg>
+                %100 Vegan
+              </span>
+              <span class="tag tag-nonvegan">
+                <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd"/></svg>
+                Hayvansal İçerik
+              </span>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- GÖRÜNÜM 0: DÜNYA KATALOĞU (CANLI OPEN BEAUTY FACTS) -->
+    <section id="view-global" class="view-section is-active" aria-labelledby="global-heading">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <h2 id="global-heading">Dünya Makyaj &amp; Cilt Bakımı Kataloğu (Canlı)</h2>
+            <p class="section-sub">
+              <strong>Open Beauty Facts</strong> açık küresel veritabanına canlı bağlıdır — dünyadaki on binlerce cilt bakım ve makyaj ürününü marka, kategori veya isimle arayıp anında analiz edebilirsin.
+            </p>
+          </div>
+          <div class="section-head-right">
+            <button type="button" class="chip chip-toggle" id="globalGroupByBrandBtn" aria-pressed="true">
+              🏷️ Marka Marka Grupla
+            </button>
+            <div class="result-counter" id="globalCount">Yükleniyor...</div>
+          </div>
+        </div>
+
+        <!-- Popüler Dünya Markaları Kısayol Şeridi -->
+        <div id="globalBrandsStrip" class="brand-strip" role="group" aria-label="Popüler dünya markaları"></div>
+
+        <!-- Canlı Arama & Kategori Paneli -->
+        <div class="filter-panel" role="search" aria-label="Küresel ürün arama">
+          <form id="globalSearchForm" class="global-search-row">
+            <div class="search-wrap">
+              <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <circle cx="11" cy="11" r="8"/>
+                <path d="m21 21-4.35-4.35"/>
+              </svg>
+              <input
+                type="search"
+                id="globalSearchInput"
+                class="search-input"
+                placeholder="Dünyadaki herhangi bir marka veya ürünü ara (örn: CeraVe, La Roche-Posay, The Ordinary, Garnier, Ruj, Güneş Kremi)..."
+                autocomplete="off"
+              />
+            </div>
+            <button type="submit" class="btn btn-primary">Dünyada Ara</button>
+          </form>
+
+          <div class="filter-groups">
+            <div id="globalCategoriesStrip" class="filter-group" role="group" aria-label="Küresel kategori filtresi"></div>
+
+            <div class="filter-group" role="group" aria-label="Sonuç filtreleri">
+              <button type="button" class="chip chip-toggle" id="globalOnlyWithInciBtn" aria-pressed="true">
+                🧪 Sadece İçeriği Olanlar
+              </button>
+              <button type="button" class="chip chip-toggle" id="globalOnlyVeganBtn" aria-pressed="false">
+                🌱 Sadece Vegan
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Küresel Sonuçlar Container -->
+        <div id="globalResultsContainer" class="catalog-container"></div>
+
+        <!-- Daha Fazla Yükle -->
+        <div id="globalLoadMoreWrap" class="load-more-wrap" hidden>
+          <button type="button" id="globalLoadMoreBtn" class="btn btn-outline">
+            Daha Fazla Ürün Yükle
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- GÖRÜNÜM 1: MARKA MARKA ÖNE ÇIKANLAR -->
+    <section id="view-catalog" class="view-section" aria-labelledby="catalog-heading" hidden>
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <h2 id="catalog-heading">Marka Marka Makyaj Kataloğu</h2>
+            <p class="section-sub">
+              Ürünler markalarına göre gruplanır; her markanın ortalama sağlık skorunu, vegan politikasını ve ürün içeriklerini ayrı ayrı incele.
+            </p>
+          </div>
+          <div class="section-head-right">
+            <button type="button" class="chip chip-toggle" id="groupByBrandBtn" aria-pressed="true">
+              🏷️ Marka Marka Grupla
+            </button>
+            <div class="result-counter" id="catalogCount">12 ürün gösteriliyor</div>
+          </div>
+        </div>
+
+        <!-- Marka Seçici Şeridi -->
+        <div id="brandFilterStrip" class="brand-strip" role="group" aria-label="Marka seçimi"></div>
+
+        <!-- Arama & Filtreleme Çubuğu -->
+        <div class="filter-panel" role="search" aria-label="Ürün arama ve filtreleme">
+          <div class="search-wrap">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="m21 21-4.35-4.35"/>
+            </svg>
+            <input
+              type="search"
+              id="catalogSearch"
+              class="search-input"
+              placeholder="Marka, ürün veya içerik ara (örn: Rare Beauty, Flormar, Carmine, Paraben, Ruj)..."
+              autocomplete="off"
+            />
+          </div>
+
+          <div class="filter-groups">
+            <div class="filter-group" role="group" aria-label="Kategori filtresi">
+              <button type="button" class="chip is-active" data-filter-category="all">Tümü</button>
+              <button type="button" class="chip" data-filter-category="yuz">Yüz</button>
+              <button type="button" class="chip" data-filter-category="dudak">Dudak</button>
+              <button type="button" class="chip" data-filter-category="goz">Göz</button>
+            </div>
+
+            <div class="filter-group" role="group" aria-label="Sağlık ve Vegan filtresi">
+              <button type="button" class="chip chip-toggle" id="filterVeganBtn" aria-pressed="false">
+                🌱 Sadece Vegan
+              </button>
+              <button type="button" class="chip chip-toggle" id="filterHealthyBtn" aria-pressed="false">
+                ✓ Sadece Sağlıklı
+              </button>
+              <button type="button" class="chip chip-toggle" id="filterCrueltyBtn" aria-pressed="false">
+                🐰 Cruelty-Free
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Marka Marka Ürün Bölümleri veya Düz Grid -->
+        <div id="productGrid" class="catalog-container"></div>
+      </div>
+    </section>
+
+    <!-- GÖRÜNÜM 1.5: MARKALAR REHBERİ -->
+    <section id="view-brands" class="view-section" aria-labelledby="brands-heading" hidden>
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <h2 id="brands-heading">Marka Karneleri &amp; Vegan Politikaları</h2>
+            <p class="section-sub">
+              Her markanın katalogdaki ürünlerinden hesaplanan ortalama sağlık puanını, vegan oranını ve hayvan testi durumunu tek bakışta gör.
+            </p>
+          </div>
+          <div class="result-counter" id="brandsCount">6 marka</div>
+        </div>
+
+        <div id="brandsDirectoryGrid" class="brands-directory-grid"></div>
+      </div>
+    </section>
+
+    <!-- GÖRÜNÜM 1.8: BARKOD TARAYICI -->
+    <section id="view-scanner" class="view-section" aria-labelledby="scanner-heading" hidden>
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <h2 id="scanner-heading">Barkod Tarama ile Otomatik İçerik Analizi</h2>
+            <p class="section-sub">
+              Ürünün arkasındaki barkodu kamerayla okut, fotoğrafını yükle veya barkod numarasını gir; <strong>Open Beauty Facts</strong> açık veritabanından içeriği otomatik çekip görsel raporunu çıkaralım.
+            </p>
+          </div>
+          <div class="result-counter">Open Beauty Facts API + Kamera</div>
+        </div>
+
+        <div class="analyzer-layout">
+          <!-- Sol: Kamera / Fotoğraf / Manuel Barkod Paneli -->
+          <div class="analyzer-input-card scanner-card">
+            <div class="scanner-viewport" id="scannerViewport">
+              <video id="scannerVideo" playsinline muted></video>
+              <div class="scanner-placeholder" id="scannerPlaceholder">
+                <div class="scanner-icon-big" aria-hidden="true">📷</div>
+                <strong>Kamera Hazır</strong>
+                <p>Telefon veya bilgisayar kameranızla makyaj ürününün EAN/UPC barkodunu okutun.</p>
+              </div>
+              <div class="scanner-reticle" id="scannerReticle" hidden aria-hidden="true">
+                <span class="reticle-corner tl"></span>
+                <span class="reticle-corner tr"></span>
+                <span class="reticle-corner bl"></span>
+                <span class="reticle-corner br"></span>
+                <span class="scanner-laser"></span>
+              </div>
+            </div>
+
+            <div class="scanner-status-bar" id="scannerStatus" role="status" aria-live="polite">
+              Kamerayı başlatabilir, barkod fotoğrafı yükleyebilir veya barkod numarası girebilirsiniz.
+            </div>
+
+            <div class="scanner-controls">
+              <button type="button" id="startCameraBtn" class="btn btn-primary">
+                📷 Kamerayı Başlat
+              </button>
+              <button type="button" id="stopCameraBtn" class="btn btn-outline" hidden>
+                ⏹ Kamerayı Durdur
+              </button>
+              <label class="btn btn-soft file-upload-btn">
+                🖼️ Fotoğraftan Tara
+                <input type="file" id="barcodeFileInput" accept="image/*" hidden />
+              </label>
+            </div>
+
+            <div class="scanner-divider"><span>veya barkod numarasını gir</span></div>
+
+            <form id="barcodeManualForm" class="barcode-manual-row">
+              <input
+                type="text"
+                id="barcodeInput"
+                class="search-input"
+                style="padding-left: 1rem;"
+                inputmode="numeric"
+                placeholder="Örn: 4250947516027 (EAN-13)"
+                autocomplete="off"
+              />
+              <button type="submit" class="btn btn-primary">Sorgula</button>
+            </form>
+
+            <div class="preset-bar">
+              <span class="preset-label">Hızlı Barkod Dene:</span>
+              <div id="sampleBarcodesWrap" class="filter-group"></div>
+            </div>
+          </div>
+
+          <!-- Sağ: Barkod Analiz Sonucu -->
+          <div id="scannerResult" class="analyzer-result-card">
+            <div class="empty-state">
+              <div class="empty-icon" aria-hidden="true">🏷️</div>
+              <h3>Barkod Sonucu Burada Görünecek</h3>
+              <p>
+                Bir makyaj ürününün barkodunu okutun veya soldaki <strong>Hızlı Barkod Dene</strong> butonlarından birine tıklayarak canlı analiz akışını test edin.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- GÖRÜNÜM 2: CANLI INCI İÇERİK ANALİZÖRÜ -->
+    <section id="view-analyzer" class="view-section" aria-labelledby="analyzer-heading" hidden>
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <h2 id="analyzer-heading">Canlı İçerik (INCI) Analizörü</h2>
+            <p class="section-sub">
+              Herhangi bir makyaj ürününün arkasındaki içerik listesini virgülle ayırarak yapıştır; anında sağlıklı mı, vegan mı görsel raporunu çıkaralım.
+            </p>
+          </div>
+        </div>
+
+        <div class="analyzer-layout">
+          <div class="analyzer-input-card">
+            <label for="inciTextarea" class="input-label">İçerik Listesi (INCI)</label>
+            <textarea
+              id="inciTextarea"
+              class="inci-textarea"
+              rows="7"
+              placeholder="Örnek: Aqua, Squalane, Niacinamide, Carmine, Parfum, Tocopherol, Methylparaben..."
+            ></textarea>
+
+            <div class="preset-bar">
+              <span class="preset-label">Hızlı Örnek Dene:</span>
+              <button type="button" class="chip chip-sm" data-preset="clean-vegan">
+                Temiz &amp; Vegan Serum
+              </button>
+              <button type="button" class="chip chip-sm" data-preset="carmine-lip">
+                Karminli Klasik Ruj
+              </button>
+              <button type="button" class="chip chip-sm" data-preset="risky-palette">
+                Talk &amp; Parabenli Far
+              </button>
+            </div>
+
+            <div class="analyzer-actions">
+              <button type="button" id="analyzeBtn" class="btn btn-primary">
+                İçeriği Analiz Et
+              </button>
+              <button type="button" id="clearAnalyzerBtn" class="btn btn-ghost">
+                Temizle
+              </button>
+            </div>
+          </div>
+
+          <div id="analyzerResult" class="analyzer-result-card">
+            <div class="empty-state">
+              <div class="empty-icon" aria-hidden="true">🧪</div>
+              <h3>Analiz Sonucu Burada Görünecek</h3>
+              <p>
+                Sol taraftaki alana bir ürünün içerik listesini yapıştırın veya yukarıdaki hızlı örneklerden birini seçin.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- GÖRÜNÜM 3: GÖRSEL İÇERİK SÖZLÜĞÜ -->
+    <section id="view-glossary" class="view-section" aria-labelledby="glossary-heading" hidden>
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <h2 id="glossary-heading">Görsel İçerik Sözlüğü</h2>
+            <p class="section-sub">
+              Makyaj ürünlerinde en sık karşılaşılan maddeleri neden sağlıklı, neden riskli veya neden vegan olmadığını öğrenerek tanı.
+            </p>
+          </div>
+          <div class="result-counter" id="glossaryCount"></div>
+        </div>
+
+        <div class="filter-panel">
+          <div class="search-wrap">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="m21 21-4.35-4.35"/>
+            </svg>
+            <input
+              type="search"
+              id="glossarySearch"
+              class="search-input"
+              placeholder="İçerik adı veya Türkçe karşılığı ara (örn: Balmumu, Karmin, Skualan, Talk)..."
+              autocomplete="off"
+            />
+          </div>
+
+          <div class="filter-group" role="group" aria-label="Sözlük filtresi">
+            <button type="button" class="chip is-active" data-glossary-filter="all">Tümü</button>
+            <button type="button" class="chip" data-glossary-filter="non-vegan">🐝 Hayvansal (Vegan Değil)</button>
+            <button type="button" class="chip" data-glossary-filter="high">⚠️ Yüksek Riskli</button>
+            <button type="button" class="chip" data-glossary-filter="moderate">⚡ Orta Riskli</button>
+            <button type="button" class="chip" data-glossary-filter="safe">🌿 Cilt Dostu</button>
+          </div>
+        </div>
+
+        <div id="glossaryGrid" class="glossary-grid"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Ürün Detay Modalı (Native Dialog) -->
+  <dialog id="productDialog" class="modal-dialog" aria-labelledby="modalProductTitle">
+    <div class="modal-surface">
+      <div class="modal-header">
+        <div>
+          <span id="modalProductCategory" class="modal-eyebrow"></span>
+          <h2 id="modalProductTitle" class="modal-title"></h2>
+        </div>
+        <button type="button" class="icon-btn modal-close" data-close-dialog="productDialog" aria-label="Kapat">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M18 6 6 18M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div id="modalProductBody" class="modal-body"></div>
+    </div>
+  </dialog>
+
+  <!-- Ürün Karşılaştırma Modalı (Native Dialog) -->
+  <dialog id="compareDialog" class="modal-dialog modal-wide" aria-labelledby="compareTitle">
+    <div class="modal-surface">
+      <div class="modal-header">
+        <div>
+          <span class="modal-eyebrow">Yan Yana Görsel Analiz</span>
+          <h2 id="compareTitle" class="modal-title">Ürün Karşılaştırma</h2>
+        </div>
+        <div class="modal-header-actions">
+          <button type="button" id="clearCompareBtn" class="btn btn-ghost btn-sm">Seçimi Temizle</button>
+          <button type="button" class="icon-btn modal-close" data-close-dialog="compareDialog" aria-label="Kapat">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M18 6 6 18M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div id="compareBody" class="modal-body"></div>
+    </div>
+  </dialog>
+
+  <!-- Alt Bilgi -->
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div>
+        <strong>MakeYUP</strong> — Açık Kaynaklı Kozmetik İçerik &amp; Vegan Analiz Uygulaması
+        <p class="footer-note">
+          Burada sunulan içerik değerlendirmeleri genel bilgilendirme amaçlıdır; tıbbi veya dermatolojik tanı yerine geçmez.
+        </p>
+      </div>
+      <div class="footer-meta">
+        <span>MIT Lisansı ile Açık Kaynak</span>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
