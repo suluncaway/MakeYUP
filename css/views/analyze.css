@@ -1,4 +1,4 @@
-/* MakeYUP v2 — #/analiz (also the shared report used inline by #/tara). Tokens only. */
+/* MakeYUP — #/analiz (also the shared report used inline by #/tara). Tokens only. */
 .analyze-form { display: grid; gap: var(--s-3); }
 .analyze-label { font-weight: 700; font-size: var(--fs-sm); }
 .analyze-input {

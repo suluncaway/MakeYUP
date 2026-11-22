@@ -1,12 +1,12 @@
 /**
- * MakeYUP v2 — shared UI components.
+ * MakeYUP — shared UI components.
  * Every component is a pure function that returns an HTML STRING. All dynamic text is escaped.
  * Interactivity is handled by delegated listeners in main.js (affiliate tracking, chips,
  * image fallback) — components only emit the right attributes.
  */
-import { flagTags } from "../../../js/flags.js";
-import { buyLinks, affiliateDisclosure, LINK_REL } from "../../../js/affiliate.js";
-import { getCosingMeta } from "../../../js/analyzer.js";
+import { flagTags } from "../flags.js";
+import { buyLinks, affiliateDisclosure, LINK_REL } from "../affiliate.js";
+import { getCosingMeta } from "../analyzer.js";
 import { getAnalysis } from "../state.js";
 
 /* ---------------- basics ---------------- */
@@ -221,15 +221,18 @@ export function sectionHeader(title, { actionHref = "", actionText = "Tümünü 
   }</div>`;
 }
 
-/** Empty / zero state. action = { href, label } or { label, id } for a button. */
-export function emptyState({ icon: ic = "search", title = "", text = "", action = null } = {}) {
+/**
+ * Empty / zero state. action = { href, label } or { label, id } for a button.
+ * level: 1–3 renders the title as that heading (use 1 when the empty state IS the page, e.g. 404).
+ */
+export function emptyState({ icon: ic = "search", title = "", text = "", action = null, level = 0 } = {}) {
   const glyph = PATHS[ic] ? icon(ic, { size: 22 }) : e(ic);
   let act = "";
   if (action && action.href) act = `<a class="btn btn-primary" href="${e(action.href)}">${e(action.label)}</a>`;
   else if (action && action.label) act = `<button type="button" class="btn btn-primary" ${action.id ? `id="${e(action.id)}"` : ""}>${e(action.label)}</button>`;
   return `<div class="empty-state">
     <div class="empty-ic" aria-hidden="true">${glyph}</div>
-    ${title ? `<p class="empty-title">${e(title)}</p>` : ""}
+    ${title ? (level >= 1 && level <= 3 ? `<h${level} class="empty-title">${e(title)}</h${level}>` : `<p class="empty-title">${e(title)}</p>`) : ""}
     ${text ? `<p class="empty-text">${e(text)}</p>` : ""}
     ${act}
   </div>`;
@@ -370,4 +373,33 @@ export function glossarySlug(inci) {
     .replace(/[^a-z0-9-]/g, "")
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
+}
+
+/* ---------------- toast ---------------- */
+
+let toastTimer = 0;
+/**
+ * Short status message at the bottom of the screen (role="status"). `html` is inserted as-is:
+ * escape any dynamic text with escapeHtml. toast("Bağlantı kopyalandı"); toast(html, { timeout: 5000 })
+ */
+export function toast(html, { timeout = 3200 } = {}) {
+  let t = document.getElementById("app-toast");
+  if (!t) {
+    t = document.createElement("div");
+    t.id = "app-toast";
+    t.className = "toast";
+    t.setAttribute("role", "status");
+    t.setAttribute("aria-live", "polite");
+    document.body.appendChild(t);
+  }
+  t.innerHTML = html;
+  t.classList.add("is-on");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("is-on"), timeout);
+}
+
+/** Removes the toast immediately (e.g. in a view's cleanup). */
+export function hideToast() {
+  clearTimeout(toastTimer);
+  document.getElementById("app-toast")?.remove();
 }

@@ -1,5 +1,5 @@
 /**
- * MakeYUP v2 — tiny hash router.
+ * MakeYUP — tiny hash router.
  *
  *   route("#/urun/:id", async ({ params, query, el, signal, isBack }) => {
  *     el.innerHTML = "…";

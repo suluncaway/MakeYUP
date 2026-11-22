@@ -1,5 +1,5 @@
 /**
- * MakeYUP v2 — #/markalar (brand list) and #/marka/:id (brand page).
+ * MakeYUP — #/markalar (brand list) and #/marka/:id (brand page).
  * Brand page query: f = vegan,hamile ; n = shown count.
  */
 import { setTitle, updateQuery } from "../router.js";
@@ -90,6 +90,7 @@ async function brandPage({ params, query, el, signal }) {
     el.innerHTML = `<section class="brands-missing">${emptyState({
       icon: "tag",
       title: "Bu markayı bulamadık",
+      level: 1,
       text: "Bağlantı eski olabilir. Marka listesinden devam edebilirsin.",
       action: { href: "#/markalar", label: "Tüm markalar" }
     })}</section>`;

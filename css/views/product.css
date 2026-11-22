@@ -1,4 +1,4 @@
-/* MakeYUP v2 — product report (#/urun/:id). Tokens only; every class is .product-*. */
+/* MakeYUP — product report (#/urun/:id). Tokens only; every class is .product-*. */
 
 .product-page { min-width: 0; }
 .product-back {
@@ -15,7 +15,8 @@
 .product-ph { width: 96px; aspect-ratio: 1; border-radius: var(--r-md); border: 1px solid var(--border); }
 .product-ph img { position: absolute; inset: 0; }
 .product-id { min-width: 0; display: grid; gap: 4px; }
-.product-brand { text-decoration: none; display: inline-flex; align-items: center; min-height: 24px; justify-self: start; }
+/* 24px visual row, 44px hit area (padding offset by negative margin keeps the layout). */
+.product-brand { text-decoration: none; display: inline-flex; align-items: center; min-height: 44px; justify-self: start; margin: -10px 0; }
 a.product-brand:hover { color: var(--accent); }
 .product-name { font-size: 24px; line-height: 1.2; }
 .product-facts { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; font-size: 13px; color: var(--muted); font-weight: 600; }
@@ -97,6 +98,7 @@ a.product-brand:hover { color: var(--accent); }
 .product-alt-name {
   font-family: var(--serif); font-size: 16px; line-height: 1.25; color: var(--text); text-decoration: none;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  padding: 12px 0; margin: -12px 0; /* 44px tap target without moving the layout */
 }
 .product-alt-name:hover { color: var(--accent); }
 .product-alt-why { display: grid; gap: 2px; font-size: 12.5px; color: var(--safe); font-weight: 600; }
@@ -129,17 +131,8 @@ a.product-brand:hover { color: var(--accent); }
 .product-bar-fav[aria-pressed="true"] path { fill: currentColor; }
 body.product-bar-on { padding-bottom: calc(var(--tabbar-h) + 86px + env(safe-area-inset-bottom)); }
 
-/* ---------- toast ---------- */
-.product-toast {
-  position: fixed; left: 50%; z-index: 60; transform: translate(-50%, 12px);
-  bottom: calc(var(--tabbar-h) + 100px + env(safe-area-inset-bottom));
-  width: max-content; max-width: calc(100% - 2 * var(--gutter));
-  background: var(--text); color: var(--bg); border-radius: var(--r-pill);
-  padding: 10px 18px; font-size: 14px; font-weight: 600; box-shadow: var(--shadow-lg);
-  opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s;
-}
-.product-toast.is-on { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
-.product-toast a { color: inherit; font-weight: 800; margin-left: 4px; display: inline-flex; min-height: 32px; align-items: center; }
+/* ---------- toast (shared .toast lives in components.css; lift it above the sticky buy bar) ---------- */
+body.product-bar-on .toast { bottom: calc(var(--tabbar-h) + 100px + env(safe-area-inset-bottom)); }
 
 /* ---------- skeleton / missing ---------- */
 .product-skel .product-ph { border: 0; }
@@ -181,5 +174,5 @@ body.product-bar-on { padding-bottom: calc(var(--tabbar-h) + 86px + env(safe-are
   .product-alt-buy { width: 100%; margin-left: 0; }
   .product-bar { display: none; }
   body.product-bar-on { padding-bottom: 0; }
-  .product-toast { bottom: var(--s-6); }
+  body.product-bar-on .toast { bottom: var(--s-6); }
 }

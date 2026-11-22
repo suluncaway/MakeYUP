@@ -5,7 +5,7 @@
  *  - Yalnızca aynı kökenli (same-origin) GET istekleri ele alınır. Çapraz kökenli API'ler
  *    (Open Beauty Facts, makeup-api, Google Fonts vb.) HİÇ yakalanmaz ve önbelleğe alınmaz.
  *  - HTML sayfaları, JS modülleri ve JSON veri: AĞ ÖNCELİKLİ (network-first), çevrimdışıysa önbellek.
- *    (ES modülleri sürümsüz URL'lerle içe aktarıldığı için yeni app.js + eski analyzer.js
+ *    (ES modülleri sürümsüz URL'lerle içe aktarıldığı için yeni main.js + eski analyzer.js
  *     karışımını önlemek amacıyla kod asla önbellekten öncelikli sunulmaz.)
  *  - Görseller, ikonlar, fontlar: ÖNBELLEK ÖNCELİKLİ (cache-first).
  *  - CSS ve manifest: önbellekten hemen sun + arka planda tazele (stale-while-revalidate).
@@ -15,7 +15,7 @@
  * ACİL DURUM: SW'yi tamamen kaldırmak için KILL_SWITCH = true yapıp yayınlayın; tüm
  * önbellekler silinir ve SW kendini kayıttan çıkarır.
  */
-const CACHE_VERSION = "2026-11-22-1";
+const CACHE_VERSION = "2026-11-22-2";
 const CACHE = `makeyup-${CACHE_VERSION}`;
 const KILL_SWITCH = false;
 

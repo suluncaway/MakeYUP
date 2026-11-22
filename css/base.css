@@ -1,4 +1,4 @@
-/* MakeYUP v2 — reset, typography and app shell (header, tab bar, footer). */
+/* MakeYUP — reset, typography and app shell (header, tab bar, footer). */
 *, *::before, *::after { box-sizing: border-box; }
 * { margin: 0; }
 html { -webkit-text-size-adjust: 100%; scroll-padding-top: calc(var(--header-h) + 8px); }
@@ -101,11 +101,14 @@ p { overflow-wrap: break-word; }
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
   background: var(--surface); border-top: 1px solid var(--border);
   display: grid; grid-template-columns: repeat(5, 1fr);
+  /* Height comes from --tabbar-h (border + padding included), so body padding, the product
+     sticky bar and toasts that offset by --tabbar-h line up exactly with the bar. */
+  height: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
   padding: 4px 4px calc(4px + env(safe-area-inset-bottom));
 }
 .tab {
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
-  min-height: 56px; font-size: 11px; font-weight: 600; color: var(--muted); text-decoration: none;
+  min-height: var(--tap); font-size: 11px; font-weight: 600; color: var(--muted); text-decoration: none;
   border-radius: var(--r-sm);
 }
 .tab svg { width: 22px; height: 22px; }

@@ -1,5 +1,5 @@
 /**
- * MakeYUP v2 — #/urun/:id  (product report; the money path)
+ * MakeYUP — #/urun/:id  (product report; the money path)
  * Top → bottom: photo + facts · score · "Hızlı cevaplar" · buy panel + actions ·
  * warnings · skin fit · cleaner alternatives · ingredients · disclosure.
  * Phone: a fixed "Satın al" bar above the tab bar. Desktop: sticky side column.
@@ -8,13 +8,13 @@ import { setTitle, back } from "../router.js";
 import { findProduct, getProduct, getAnalysis, getProducts, getCatalog } from "../state.js";
 import {
   escapeHtml as e, enc, productHref, productImage, scoreRing, scoreVerdict, statusTone, icon, emptyState,
-  buyPanel, primaryBuyLink, priceTier, safetyList, skinFit, ingredientList, sectionHeader, veganBadge
+  buyPanel, primaryBuyLink, priceTier, safetyList, skinFit, ingredientList, sectionHeader, veganBadge, toast, hideToast
 } from "../ui/components.js";
-import { LINK_REL } from "../../../js/affiliate.js";
-import { analyzeIngredients } from "../../../js/analyzer.js";
-import { findAlternatives } from "../../../js/features/alternatives.js";
-import { isFavorite, toggleFavorite, addRecent, onChange } from "../../../js/features/favorites.js";
-import { shareProduct, productPageUrl, reportUrl } from "../../../js/features/share.js";
+import { LINK_REL } from "../affiliate.js";
+import { analyzeIngredients } from "../analyzer.js";
+import { findAlternatives } from "../features/alternatives.js";
+import { isFavorite, toggleFavorite, addRecent, onChange } from "../features/favorites.js";
+import { shareProduct, productPageUrl, reportUrl } from "../features/share.js";
 import { addToCompare, replaceInCompare, compareHref, getCompareIds } from "./compare.js";
 
 const altCache = new Map(); // analyzer results shared across product pages
@@ -220,29 +220,6 @@ function skeleton() {
   </article>`;
 }
 
-/* ---------------- toast (local helper; no shared toast component yet) ---------------- */
-
-let toastTimer = 0;
-function toast(html) {
-  let t = document.getElementById("product-toast");
-  if (!t) {
-    t = document.createElement("div");
-    t.id = "product-toast";
-    t.className = "product-toast";
-    t.setAttribute("role", "status");
-    t.setAttribute("aria-live", "polite");
-    document.body.appendChild(t);
-  }
-  t.innerHTML = html;
-  t.classList.add("is-on");
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove("is-on"), 3200);
-}
-function removeToast() {
-  clearTimeout(toastTimer);
-  document.getElementById("product-toast")?.remove();
-}
-
 /* ---------------- route ---------------- */
 
 async function productRoute({ params, el, signal }) {
@@ -257,6 +234,7 @@ async function productRoute({ params, el, signal }) {
     el.innerHTML = `<section class="product-missing">${emptyState({
       icon: "search",
       title: "Bu ürünü bulamadık",
+      level: 1,
       text: "Bağlantı eski olabilir ya da ürün kataloğumuzdan kaldırılmış olabilir. Adıyla ya da markasıyla aramayı dene.",
       action: { href: "#/", label: "Ürün ara" }
     })}</section>`;
@@ -400,7 +378,7 @@ async function productRoute({ params, el, signal }) {
     try { offFav?.(); } catch { /* ignore */ }
     io?.disconnect();
     document.body.classList.remove("product-bar-on");
-    removeToast();
+    hideToast();
   };
 }
 

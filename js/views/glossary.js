@@ -1,5 +1,5 @@
 /**
- * MakeYUP v2 — #/sozluk (searchable ingredient list) and #/sozluk/:inci (ingredient page).
+ * MakeYUP — #/sozluk (searchable ingredient list) and #/sozluk/:inci (ingredient page).
  *
  * Slug rule: glossarySlug("Sodium Hyaluronate") → "sodium-hyaluronate"
  * (lowercase, spaces → "-", anything outside [a-z0-9-] removed). Lookup is tolerant:
@@ -10,10 +10,10 @@ import { getProducts } from "../state.js";
 import {
   escapeHtml as e, icon, riskPill, riskInfo, chipRow, searchBox, productGrid, sectionHeader, emptyState
 } from "../ui/components.js";
-import { INGREDIENTS_DB } from "../../../js/data/ingredients.js";
-import { findIngredient, getCosingMeta } from "../../../js/analyzer.js";
-import { getIngredientFlags } from "../../../js/flags.js";
-import { compileQuery } from "../../../js/search.js";
+import { INGREDIENTS_DB } from "../data/ingredients.js";
+import { findIngredient, getCosingMeta } from "../analyzer.js";
+import { getIngredientFlags } from "../flags.js";
+import { compileQuery } from "../search.js";
 
 /** URL slug for an INCI name. */
 export function glossarySlug(inci) {
@@ -211,10 +211,10 @@ function detailHandler({ el, params }) {
       ${!entry ? `<p class="glossary-sum">Bu madde yerel veritabanımızda yok. Aşağıdaki kaynaklardan bilgi alabilirsin.</p>` : !inDb ? `<p class="glossary-note muted">${icon("info", { size: 14 })}Bu bilgi maddenin kimyasal ailesinden tahmin edildi.</p>` : ""}
       ${entry?.animalSource || origin ? `<dl class="glossary-facts glossary-origin">${origin ? `<div><dt>Kaynak</dt><dd>${e(origin)}</dd></div>` : ""}${entry?.animalSource ? `<div><dt>Hayvansal kaynak</dt><dd>${e(entry.animalSource)}</dd></div>` : ""}</dl>` : ""}
     </header>
-    ${flags ? `<section class="glossary-sec">${sectionHeader("Uyarılar", { level: 3 })}${flagsHtml(flags)}</section>` : ""}
-    <section class="glossary-sec" data-cosing>${sectionHeader("Teknik bilgiler", { level: 3 })}${cosingHtml(inci)}</section>
-    ${entry ? `<section class="glossary-sec">${sectionHeader("Bu içeriği barındıran ürünler", { level: 3, count: prods.length })}${prods.length ? productGrid(prods) : `<p class="muted glossary-nometa">Seçili ürünlerimizde bu madde yok.</p>`}</section>` : ""}
-    <section class="glossary-sec">${sectionHeader("Dış kaynaklar", { level: 3 })}
+    ${flags ? `<section class="glossary-sec">${sectionHeader("Uyarılar", { level: 2 })}${flagsHtml(flags)}</section>` : ""}
+    <section class="glossary-sec" data-cosing>${sectionHeader("Teknik bilgiler", { level: 2 })}${cosingHtml(inci)}</section>
+    ${entry ? `<section class="glossary-sec">${sectionHeader("Bu içeriği barındıran ürünler", { level: 2, count: prods.length })}${prods.length ? productGrid(prods) : `<p class="muted glossary-nometa">Seçili ürünlerimizde bu madde yok.</p>`}</section>` : ""}
+    <section class="glossary-sec">${sectionHeader("Dış kaynaklar", { level: 2 })}
       <ul class="glossary-links" role="list">
         <li><a href="https://cosmileeurope.eu/inci/search/?q=${enc}" target="_blank" rel="noopener noreferrer">COSMILE Europe ${icon("external", { size: 14 })}</a></li>
         <li><a href="https://www.ewg.org/skindeep/search/?search=${enc}" target="_blank" rel="noopener noreferrer">EWG Skin Deep ${icon("external", { size: 14 })}</a></li>
@@ -228,7 +228,7 @@ function detailHandler({ el, params }) {
   el.querySelector("[data-back]").addEventListener("click", () => back("#/sozluk"));
   const onCosing = () => {
     const sec = el.querySelector("[data-cosing]");
-    if (sec) sec.innerHTML = sectionHeader("Teknik bilgiler", { level: 3 }) + cosingHtml(inci);
+    if (sec) sec.innerHTML = sectionHeader("Teknik bilgiler", { level: 2 }) + cosingHtml(inci);
   };
   window.addEventListener("makeyup:cosing-ready", onCosing);
   return () => window.removeEventListener("makeyup:cosing-ready", onCosing);

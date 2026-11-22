@@ -1,7 +1,7 @@
-# MakeYUP v2: shell and contract for view authors
+# MakeYUP UI: shell and contract for view authors
 
-v2 is a zero-build, vanilla ES-module single-page app. It is served from `/v2/` and stays next to the live root site until it is finished.
-Open it at `http://localhost:8802/v2/` (`cd /home/user/MakeYUP && python3 -m http.server 8802`).
+The UI is a zero-build, vanilla ES-module single-page app served from the site root (it was built under `/v2/`; `v2/index.html` now only redirects old links to `../#/…`).
+Open it at `http://localhost:8802/` (`cd MakeYUP && python3 -m http.server 8802`). E2E tests: `node tests/e2e.mjs http://localhost:8802/`.
 
 ## File ownership
 
@@ -10,7 +10,7 @@ Open it at `http://localhost:8802/v2/` (`cd /home/user/MakeYUP && python3 -m htt
 | `index.html`, `css/tokens.css`, `css/base.css`, `css/components.css` | shell (agent 8) |
 | `js/main.js`, `js/router.js`, `js/state.js`, `js/ui/components.js`, `js/views/placeholder.js` | shell (agent 8) |
 | `js/views/<name>.js` and `css/views/<name>.css` | the view's agent |
-| `../js/**` (analyzer, flags, search, affiliate, data, features) | engine: import it, never copy it |
+| `js/analyzer.js`, `flags.js`, `search.js`, `barcode.js`, `globalApi.js`, `affiliate.js`, `js/data/`, `js/features/` | engine: import it, never copy it |
 
 If you need a new shared component or a token, ask the shell owner. Don't fork one into your view.
 
@@ -134,12 +134,13 @@ Every component is a pure function that returns an **HTML string** with all dyna
 | `chipRow([{id,label,active,dot}], { name, label, mode: "multi"\|"single", wrap })` | `main.js` toggles `aria-pressed` and fires a bubbling `chipchange` event whose `detail` is `{ name, id, active, selected }`. |
 | `searchBox({ id, placeholder, value, label, scan })` | Listen to `input` on `#id`. Submitting never reloads the page. |
 | `sectionHeader(title, { actionHref, actionText, level, count })` | |
-| `emptyState({ icon, title, text, action: { href, label } \| { id, label } })` | |
+| `emptyState({ icon, title, text, action: { href, label } \| { id, label }, level })` | `level: 1` renders the title as the page `<h1>` (use it when the empty state is the whole page, e.g. not found). |
 | `skeletonCards(n)` | |
 | `safetyList(analysis.safety)` | |
 | `ingredientRow(item)`, `ingredientList(items)` | `<details>` rows showing CoSIng CAS/EC/function/comedogenic data and a link to `#/sozluk/<inci>`. |
 | `veganCallout(analysis)`, `skinFit(analysis.skinProfile)` | |
 | `buyPanel(p, { label })` | Primary store button, "Diğer mağazalar" and the disclosure. |
+| `toast(html, { timeout })`, `hideToast()` | Bottom status message (`role="status"`). Escape dynamic text yourself; call `hideToast()` in your cleanup. |
 
 Example:
 
@@ -155,7 +156,7 @@ Global behaviour that `main.js` provides for free:
 - Theme toggle.
 - Active state for the nav and tabs.
 - A `makeyup:cosing-ready` window event once the CoSIng index has loaded. Re-render ingredient rows on it if you need CAS/EC data on first paint.
-- `window.fetch` is shimmed so that engine modules fetching `js/data/…` resolve from the repository root.
+- Service-worker registration (HTTPS only) and `?v=` cache busting of view CSS (taken from `js/main.js?v=…` in `index.html`).
 
 ## CSS conventions
 

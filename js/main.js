@@ -1,22 +1,11 @@
 /**
- * MakeYUP v2 — app entry: theme, routes, global delegated listeners.
+ * MakeYUP — app entry: theme, routes, global delegated listeners.
  * View modules live in ./views/<name>.js and default-export { routes: { "#/...": handler }, css?: false }.
  */
 import { route, start, onRouteChange, setNotFound, match, navigate } from "./router.js";
-import { ROOT } from "./state.js";
 import { placeholderHandler } from "./views/placeholder.js";
-import { trackClick, affiliateDisclosure } from "../../js/affiliate.js";
-import { loadCosingIndex } from "../../js/analyzer.js";
-
-/* ------------------------------------------------------------------
- * Engine modules fetch "js/data/…" relative to the document. v2/ lives one
- * level deeper, so rewrite those requests to the repository root.
- * ------------------------------------------------------------------ */
-const nativeFetch = window.fetch.bind(window);
-window.fetch = (input, init) => {
-  if (typeof input === "string" && /^(\.\/)?js\/data\//.test(input)) input = ROOT + input.replace(/^\.\//, "");
-  return nativeFetch(input, init);
-};
+import { trackClick, affiliateDisclosure } from "./affiliate.js";
+import { loadCosingIndex } from "./analyzer.js";
 
 /* ------------------------------------------------------------------
  * Theme
@@ -68,8 +57,12 @@ export const VIEWS = {
 
 const loaded = new Map(); // name → Promise<{ routes, ok }>
 
+// Cache-busting token for lazily injected view CSS: reuse the ?v= of this module's URL
+// (index.html loads js/main.js?v=…), so one bump in index.html refreshes everything.
+const ASSET_VERSION = new URL(import.meta.url).searchParams.get("v") || "";
+
 function injectCss(name) {
-  const href = `css/views/${name}.css`;
+  const href = `css/views/${name}.css${ASSET_VERSION ? `?v=${ASSET_VERSION}` : ""}`;
   if (document.querySelector(`link[data-view-css="${name}"]`)) return Promise.resolve();
   return new Promise((resolve) => {
     const link = document.createElement("link");
@@ -142,6 +135,7 @@ setNotFound(async (ctx) => {
   el.innerHTML = `<section class="not-found">${emptyState({
     icon: "compass",
     title: "Bu sayfayı bulamadık",
+    level: 1,
     text: "Bağlantı eski ya da hatalı olabilir. Keşfet'ten devam edebilirsin.",
     action: { href: "#/", label: "Ana sayfaya dön" }
   })}</section>`;
@@ -153,7 +147,7 @@ setNotFound(async (ctx) => {
 function sectionOf(path) {
   if (path === "#/") return "kesfet";
   const seg = path.split("/")[1] || "";
-  return { markalar: "markalar", marka: "markalar", tara: "tara", analiz: "analiz", sozluk: "sozluk", favoriler: "favoriler" }[seg] || "";
+  return { markalar: "markalar", marka: "markalar", tara: "tara", analiz: "analiz", sozluk: "sozluk", favoriler: "favoriler", karsilastir: "kesfet" }[seg] || "";
 }
 
 onRouteChange((info) => {
@@ -230,6 +224,17 @@ function boot() {
   start();
   // CoSIng metadata (CAS/EC/function) for ingredient rows; views may listen for this event.
   loadCosingIndex().finally(() => window.dispatchEvent(new CustomEvent("makeyup:cosing-ready")));
+  registerServiceWorker();
+}
+
+/* ------------------------------------------------------------------
+ * PWA: service worker (HTTPS only; a failed registration never breaks the app).
+ * ------------------------------------------------------------------ */
+function registerServiceWorker() {
+  if (!("serviceWorker" in navigator) || location.protocol !== "https:") return;
+  const reg = () => navigator.serviceWorker.register("./sw.js").catch(() => {});
+  if (document.readyState === "complete") reg();
+  else window.addEventListener("load", reg, { once: true });
 }
 
 boot();

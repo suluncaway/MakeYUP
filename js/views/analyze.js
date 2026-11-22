@@ -1,5 +1,5 @@
 /**
- * MakeYUP v2 — #/analiz: paste an INCI list, get the report.
+ * MakeYUP — #/analiz: paste an INCI list, get the report.
  * Also exports renderReport() so the scanner can show an inline report for products
  * that have no id in state (online barcode hits).
  */
@@ -9,8 +9,8 @@ import {
   escapeHtml as e, icon, scoreRing, scoreVerdict, safetyList, skinFit, ingredientList,
   productGrid, sectionHeader, emptyState, buyPanel, productImage
 } from "../ui/components.js";
-import { analyzeIngredients } from "../../../js/analyzer.js";
-import { findAlternatives } from "../../../js/features/alternatives.js";
+import { analyzeIngredients } from "../analyzer.js";
+import { findAlternatives } from "../features/alternatives.js";
 
 const TEXT_KEY = "myup-analyze-text";
 const DONE_KEY = "myup-analyze-done";

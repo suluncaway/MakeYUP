@@ -1,5 +1,5 @@
 /**
- * MakeYUP v2 — #/karsilastir?ids=a,b
+ * MakeYUP — #/karsilastir?ids=a,b
  * Two products side by side (two columns even on the phone), compared row by row.
  * Also exports the small compare-tray helpers used by the product page.
  */
@@ -8,9 +8,9 @@ import { findProduct, getProduct, getAnalysis, getProducts } from "../state.js";
 import {
   escapeHtml as e, enc, productHref, productImage, scoreRing, scoreVerdict, icon, emptyState, primaryBuyLink, priceTier
 } from "../ui/components.js";
-import { LINK_REL } from "../../../js/affiliate.js";
-import { findAlternatives } from "../../../js/features/alternatives.js";
-import { analyzeIngredients } from "../../../js/analyzer.js";
+import { LINK_REL } from "../affiliate.js";
+import { findAlternatives } from "../features/alternatives.js";
+import { analyzeIngredients } from "../analyzer.js";
 
 /* ---------------- compare tray (localStorage, max 2) ---------------- */
 

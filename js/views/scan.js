@@ -1,5 +1,5 @@
 /**
- * MakeYUP v2 — #/tara: camera / photo / manual barcode lookup.
+ * MakeYUP — #/tara: camera / photo / manual barcode lookup.
  * Hit with an id in state → #/urun/<id>. Online-only hit → inline report + buyPanel.
  * Camera is stopped on route cleanup, when the tab is hidden, and on errors.
  */
@@ -9,7 +9,7 @@ import { escapeHtml as e, icon, emptyState, buyPanel, productImage, enc } from "
 import {
   BarcodeScannerController, fetchProductByBarcode, scanBarcodeFromImageFile,
   SAMPLE_BARCODES, LOCAL_BARCODES, cleanBarcode
-} from "../../../js/barcode.js";
+} from "../barcode.js";
 import { renderReport } from "./analyze.js";
 
 const LOOKUP_CAP_MS = 9000; // never leave the user waiting longer than this

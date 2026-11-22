@@ -1,4 +1,4 @@
-/* MakeYUP v2 — #/favoriler */
+/* MakeYUP — #/favoriler */
 .favorites-head h1 { margin: 4px 0 6px; }
 .favorites-count { color: var(--muted); font-size: var(--fs-sm); margin-bottom: var(--s-3); }
 .favorites-count b { color: var(--text); }

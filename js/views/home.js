@@ -1,10 +1,10 @@
 /**
- * MakeYUP v2 — #/ Keşfet: one search box, one chip row, results (local → archive → online).
+ * MakeYUP — #/ Keşfet: one search box, one chip row, results (local → archive → online).
  * URL query: q (text), f (needs: vegan,hamile,parfumsuz,parabensiz), k (category), n (shown count), tum=1 (browse all).
  */
 import { setTitle, updateQuery } from "../router.js";
 import { getProducts, getBrands, searchAll, searchOnline, findProduct } from "../state.js";
-import { getRecent } from "../../../js/features/favorites.js";
+import { getRecent } from "../features/favorites.js";
 import {
   productGrid, sectionHeader, searchBox, chipRow, emptyState, skeletonCards, escapeHtml, enc, fmt, icon
 } from "../ui/components.js";
@@ -190,6 +190,7 @@ async function homeView({ query, el, signal }) {
     }
     body.innerHTML = `<div class="home-res">
       ${countLine(all.length, shown.length, localN, st)}
+      <h2 class="visually-hidden">Sonuçlar</h2>
       <div data-grid>${productGrid(shown)}</div>
       ${shown.length < all.length ? `<div class="home-more"><button type="button" class="btn btn-ghost" data-more>Daha fazla göster <span class="home-more-n">(${fmt(all.length - shown.length)} kaldı)</span></button></div>` : ""}
       ${onlineBlock(st)}

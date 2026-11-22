@@ -1,9 +1,9 @@
 /**
- * MakeYUP v2 — #/favoriler: saved products (localStorage) + "Son baktıkların".
+ * MakeYUP — #/favoriler: saved products (localStorage) + "Son baktıkların".
  */
 import { setTitle } from "../router.js";
 import { findProduct } from "../state.js";
-import { getFavorites, getRecent, toggleFavorite, onChange } from "../../../js/features/favorites.js";
+import { getFavorites, getRecent, toggleFavorite, onChange } from "../features/favorites.js";
 import { productGrid, sectionHeader, emptyState, escapeHtml, icon, skeletonCards } from "../ui/components.js";
 
 const load = async (ids) => (await Promise.all(ids.map((id) => findProduct(id).catch(() => null)))).filter(Boolean);

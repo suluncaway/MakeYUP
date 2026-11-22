@@ -1,5 +1,5 @@
 /**
- * MakeYUP v2 — data layer. Lazily computed, cached, UI-free.
+ * MakeYUP — data layer. Lazily computed, cached, UI-free.
  *
  * Unified product shape (local products AND archive items):
  *   { id, brand, brandId, name, image|null, category, categoryLabel, ingredients,
@@ -7,15 +7,15 @@
  * Local products keep all their original fields (description, skinTypes, pao, shades…).
  * Use getAnalysis(product) to get the analyzer result (memoized) for any product.
  */
-import { analyzeIngredients } from "../../js/analyzer.js";
-import { compileQuery, fold } from "../../js/search.js";
-import { PRODUCTS_DATA } from "../../js/data/products.js";
-import { BRANDS_DATA } from "../../js/data/brands.js";
-import { INGREDIENTS_DB } from "../../js/data/ingredients.js";
+import { analyzeIngredients } from "./analyzer.js";
+import { compileQuery, fold } from "./search.js";
+import { PRODUCTS_DATA } from "./data/products.js";
+import { BRANDS_DATA } from "./data/brands.js";
+import { INGREDIENTS_DB } from "./data/ingredients.js";
 
 /** Absolute URL of the repository root (where assets/ and js/ live). */
-export const ROOT = new URL("../../", import.meta.url).href;
-/** Turns a repo-relative path ("assets/images/x.jpg") into a URL that works from v2/. */
+export const ROOT = new URL("../", import.meta.url).href;
+/** Turns a repo-relative path ("assets/images/x.jpg") into an absolute URL (works from any page depth). */
 export const asset = (path) => (!path ? "" : /^(https?:|data:|blob:)/.test(path) ? path : ROOT + String(path).replace(/^\.?\//, ""));
 
 const ARCHIVE_IMG_BASE = "https://huggingface.co/datasets/thebeautyapi/beautyproducts/resolve/main/images/";
@@ -315,7 +315,7 @@ export function searchLocal(query = "", filters = {}) {
 export async function searchOnline(query, { timeoutMs = 6000 } = {}) {
   if (!String(query || "").trim()) return { items: [], error: false };
   try {
-    const mod = await import("../../js/globalApi.js");
+    const mod = await import("./globalApi.js");
     const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), timeoutMs));
     const res = await Promise.race([mod.searchGlobalProducts({ query, page: 1, pageSize: 40 }), timeout]);
     const rows = Array.isArray(res) ? res : res?.products || res?.items || [];

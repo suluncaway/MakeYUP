@@ -1,4 +1,4 @@
-/* MakeYUP v2 — #/sozluk and #/sozluk/:inci. Tokens only. */
+/* MakeYUP — #/sozluk and #/sozluk/:inci. Tokens only. */
 .glossary-page .chips { padding-top: var(--s-3); }
 .glossary-count { font-size: var(--fs-sm); margin: var(--s-3) 0 var(--s-2); }
 .glossary-list { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--shadow); }
@@ -33,6 +33,7 @@
 .glossary-facts dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
 .glossary-nometa { font-size: var(--fs-sm); }
 .glossary-sec .sec-head { margin-top: var(--s-5); }
+.glossary-sec .sec-head h2 { font-size: 19px; }
 .glossary-links { display: flex; flex-wrap: wrap; gap: var(--s-2); }
 .glossary-links a {
   display: inline-flex; align-items: center; gap: 6px; min-height: var(--tap); padding: 0 16px;

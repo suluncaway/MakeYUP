@@ -1,4 +1,4 @@
-/* MakeYUP v2 — compare (#/karsilastir). Tokens only; every class is .compare-*. */
+/* MakeYUP — compare (#/karsilastir). Tokens only; every class is .compare-*. */
 
 .compare-page { min-width: 0; }
 .compare-hint { display: flex; align-items: center; gap: 6px; font-size: 13.5px; color: var(--muted); margin-bottom: var(--s-4); }
