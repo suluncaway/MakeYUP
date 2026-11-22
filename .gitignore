@@ -3,3 +3,7 @@ Thumbs.db
 *.log
 .vscode/
 .idea/
+
+# Tasarım aracı çalışma dosyaları
+.taste-skill/
+shots/
