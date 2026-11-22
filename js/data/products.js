@@ -1040,7 +1040,7 @@ export const PRODUCTS_DATA = [
     id: "maybelline-nudes-palette",
     brandId: "maybelline",
     brand: "Maybelline New York",
-    name: "The Nudes 9'lu Far Paleti",
+    name: "The Nudes 12'li Far Paleti",
     category: "goz",
     categoryLabel: "Göz · Far Paleti",
     image: "assets/images/eyeshadow.jpg",
@@ -1050,6 +1050,7 @@ export const PRODUCTS_DATA = [
     skinTypes: ["Normal"],
     pao: "24M",
     priceTier: "₺",
+    shades: 12,
     ingredients: [
       "Talc",
       "Mica",
