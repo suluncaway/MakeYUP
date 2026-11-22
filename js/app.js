@@ -139,6 +139,16 @@ function renderIngredientCard(item) {
     ? `<span class="tag tag-neutral">Kaynak: ${escapeHtml(item.origin)}</span>`
     : "";
 
+  const encodedInci = encodeURIComponent(item.inci || item.rawName || "");
+  const sciLinks = `
+    <div class="inci-sci-links">
+      <span>Bilimsel Kaynak:</span>
+      <a href="https://cosmileeurope.eu/inci/search/?q=${encodedInci}" target="_blank" rel="noopener noreferrer">COSMILE EU ↗</a>
+      <a href="https://www.ewg.org/skindeep/search/?search=${encodedInci}" target="_blank" rel="noopener noreferrer">EWG Skin Deep ↗</a>
+      <a href="https://ec.europa.eu/growth/tools-databases/cosing/" target="_blank" rel="noopener noreferrer">AB CosIng ↗</a>
+    </div>
+  `;
+
   return `
     <article class="inci-item risk-${escapeHtml(item.risk)}">
       <div class="inci-item-top">
@@ -154,6 +164,7 @@ function renderIngredientCard(item) {
       </div>
       <p class="inci-summary">${escapeHtml(item.summaryTr)}</p>
       ${item.animalSource ? `<p class="inci-animal-note">Hayvansal Kaynak Bilgisi: ${escapeHtml(item.animalSource)}</p>` : ""}
+      ${sciLinks}
     </article>
   `;
 }

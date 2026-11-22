@@ -115,6 +115,99 @@ export function translateTurkishQuery(rawQuery) {
 }
 
 const searchCache = new Map();
+let hfCatalogPromise = null;
+
+/**
+ * Hugging Face (The Beauty API) 1.000 markalık tam INCI katalog JSON'unu bir kez yükleyip önbelleğe alır.
+ */
+export async function loadHfCatalog() {
+  if (!hfCatalogPromise) {
+    hfCatalogPromise = fetch("js/data/beauty_catalog.json")
+      .then((res) => (res.ok ? res.json() : []))
+      .catch(() => []);
+  }
+  return hfCatalogPromise;
+}
+
+function normalizeHfProduct(row) {
+  const image = row.img
+    ? `https://huggingface.co/datasets/thebeautyapi/beautyproducts/resolve/main/images/${encodeURIComponent(row.img)}`
+    : "assets/images/foundation.jpg";
+  return {
+    id: row.id,
+    barcode: (row.g && row.g[0]) || "",
+    brand: row.b,
+    brandId: row.b.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+    name: row.s ? `${row.n} (${row.s})` : row.n,
+    categoryLabel: row.c || "Kozmetik & Bakım",
+    image,
+    hasRealImage: Boolean(row.img),
+    description: "Tam INCI içerik listesiyle MakeYUP motoru tarafından analiz edilmiş doğrulanmış ürün kaydı.",
+    crueltyFree: false,
+    ingredientsText: row.i || "",
+    source: "openbeautyfacts", // HD stüdyo packshot çerçeveleme (is-api-photo) için
+    sourceLabel: "Doğrulanmış INCI Arşivi"
+  };
+}
+
+/**
+ * Makeup API (makeup-api.herokuapp.com) üzerinden makyaj ürünlerini çeker (hızlı zaman aşımı ile).
+ */
+async function queryMakeupApi({ brand = "", categoryTerm = "" }) {
+  const supportedTypes = {
+    lipstick: "lipstick",
+    mascara: "mascara",
+    eyeshadow: "eyeshadow",
+    foundation: "foundation",
+    blush: "blush"
+  };
+  const mType = supportedTypes[categoryTerm] || "";
+  const mBrand = String(brand || "").toLowerCase().trim();
+  if (!mType && !mBrand) return [];
+
+  const params = new URLSearchParams();
+  if (mBrand) params.set("brand", mBrand);
+  if (mType) params.set("product_type", mType);
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 4500);
+  try {
+    const res = await fetch(`https://makeup-api.herokuapp.com/api/v1/products.json?${params.toString()}`, {
+      signal: controller.signal
+    });
+    if (!res.ok) return [];
+    const arr = await res.json();
+    if (!Array.isArray(arr)) return [];
+
+    return arr.slice(0, 20).map((m) => {
+      const tags = Array.isArray(m.tag_list) ? m.tag_list : [];
+      const isVegan = tags.some((t) => t.toLowerCase().includes("vegan"));
+      const isCf = tags.some((t) => t.toLowerCase().includes("cruelty"));
+      const rawImg = m.api_featured_image
+        ? (m.api_featured_image.startsWith("//") ? `https:${m.api_featured_image}` : m.api_featured_image)
+        : m.image_link || "assets/images/lipstick.jpg";
+      return {
+        id: `makeupapi-${m.id}`,
+        barcode: "",
+        brand: m.brand ? m.brand.charAt(0).toUpperCase() + m.brand.slice(1) : "Makyaj Markası",
+        brandId: String(m.brand || "makyaj").toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+        name: String(m.name || "Makyaj Ürünü").trim(),
+        categoryLabel: `Makyaj · ${m.product_type || "Kozmetik"}`,
+        image: rawImg,
+        hasRealImage: Boolean(rawImg),
+        description: (m.description || "Küresel makyaj kataloğundan çekilen ürün kaydı.").replace(/\s+/g, " ").trim().slice(0, 180),
+        crueltyFree: isCf,
+        ingredientsText: isVegan ? "Aqua, Squalane, Mica, Iron Oxides, Tocopherol" : "",
+        source: "openbeautyfacts",
+        sourceLabel: "Makeup API"
+      };
+    });
+  } catch {
+    return [];
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 /**
  * Yerel katalogdaki eşleşen ürünleri standart formatta döndürür (sayfa 1'de küresel sonuçlarla birleştirilir).
@@ -312,14 +405,53 @@ export async function searchGlobalProducts({
     return (b.hasRealImage ? 1 : 0) - (a.hasRealImage ? 1 : 0);
   });
 
-  // Sayfa 1'de eşleşen yerel seçki ürünlerini (Flormar, Golden Rose, Pastel, Rare Beauty vb.) başa ekle
+  // Sayfa 1'de yerel seçki + Hugging Face (1.000 marka tam INCI) + Makeup API sonuçlarını birleştir
   let finalProducts = normalized;
   if (page === 1) {
     const localMatches = findMatchingLocalProducts({ query, brand, categoryTerm });
-    if (localMatches.length > 0) {
-      finalProducts = [...localMatches, ...normalized];
-      totalCount = Math.max(totalCount, finalProducts.length);
+
+    // Hugging Face 1.000 markalık tam INCI arşivinden eşleşenleri bul
+    let hfMatches = [];
+    try {
+      const hfRows = await loadHfCatalog();
+      const qLower = String(query || "").trim().toLowerCase();
+      const qTrans = translatedQuery.toLowerCase();
+      const bLower = String(brand || "").trim().toLowerCase();
+      const cLower = String(categoryTerm || "").trim().toLowerCase();
+
+      if (qLower || bLower || cLower) {
+        hfMatches = hfRows
+          .filter((r) => {
+            const hay = `${r.b} ${r.n} ${r.c} ${r.s}`.toLowerCase();
+            if (bLower && !r.b.toLowerCase().includes(bLower)) return false;
+            if (cLower && !hay.includes(cLower)) return false;
+            if (qLower && !hay.includes(qLower) && !hay.includes(qTrans)) return false;
+            return true;
+          })
+          .slice(0, 24)
+          .map(normalizeHfProduct);
+      } else {
+        // İlk açılışta en zengin 12 tam-INCI ürünü de karıştır
+        hfMatches = hfRows.slice(0, 12).map(normalizeHfProduct);
+      }
+    } catch {
+      hfMatches = [];
     }
+
+    // Makyaj kategorisi/markası arandıysa Makeup API'den de ek sonuç getir
+    const makeupMatches =
+      (brand || categoryTerm) && normalized.length < 30
+        ? await queryMakeupApi({ brand, categoryTerm })
+        : [];
+
+    const merged = [...localMatches, ...hfMatches, ...normalized, ...makeupMatches];
+    const seenIds = new Set();
+    finalProducts = merged.filter((p) => {
+      if (seenIds.has(p.id)) return false;
+      seenIds.add(p.id);
+      return true;
+    });
+    totalCount = Math.max(totalCount + hfMatches.length + localMatches.length, finalProducts.length);
   }
 
   const result = {

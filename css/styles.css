@@ -2825,3 +2825,26 @@ a:focus-visible {
     height: 42px;
   }
 }
+
+/* Bilimsel INCI Doğrulama Linkleri (COSMILE, EWG, AB CosIng) */
+.inci-sci-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.45rem;
+  padding-top: 0.4rem;
+  border-top: 1px dashed var(--border-subtle);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.inci-sci-links a {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.inci-sci-links a:hover {
+  text-decoration: underline;
+}

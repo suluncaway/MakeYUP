@@ -11,6 +11,7 @@
  */
 
 import { PRODUCTS_DATA } from "./data/products.js";
+import { loadHfCatalog } from "./globalApi.js";
 
 export const LOCAL_BARCODES = {
   "8690001001011": "rare-soft-pinch-blush",
@@ -88,6 +89,36 @@ export async function fetchProductByBarcode(rawCode, { onProgress } = {}) {
         apiLabels: []
       };
     }
+  }
+
+  // 1.5. Hugging Face (744+ GTIN barkodlu tam INCI arşivi) kontrolü
+  try {
+    const hfRows = await loadHfCatalog();
+    const trimmedCode = code.replace(/^0+/, "");
+    const hfHit = hfRows.find(
+      (r) => Array.isArray(r.g) && r.g.some((g) => String(g).replace(/^0+/, "") === trimmedCode)
+    );
+    if (hfHit) {
+      const image = hfHit.img
+        ? `https://huggingface.co/datasets/thebeautyapi/beautyproducts/resolve/main/images/${encodeURIComponent(hfHit.img)}`
+        : "assets/images/foundation.jpg";
+      return {
+        source: "openbeautyfacts",
+        sourceLabel: "Doğrulanmış INCI Arşivi",
+        barcode: code,
+        name: hfHit.s ? `${hfHit.n} (${hfHit.s})` : hfHit.n,
+        brand: hfHit.b,
+        categoryLabel: hfHit.c || "Kozmetik & Bakım",
+        image,
+        description: "Barkod ile doğrulanmış tam INCI arşivinden bulundu ve analiz edildi.",
+        crueltyFree: false,
+        ingredientsText: hfHit.i || "",
+        ingredientsList: null,
+        apiLabels: []
+      };
+    }
+  } catch {
+    // devam et
   }
 
   // 2. Çoklu Open Facts veritabanları (Open Beauty Facts -> Open Products Facts -> Open Food Facts)
