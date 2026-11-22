@@ -7,6 +7,7 @@ import { PRODUCTS_DATA } from "./data/products.js";
 import { INGREDIENTS_DB } from "./data/ingredients.js";
 import { analyzeIngredients, loadCosingIndex, getCosingMeta } from "./analyzer.js";
 import { flagTags } from "./flags.js";
+import { compileQuery } from "./search.js";
 import {
   SAMPLE_BARCODES,
   BarcodeScannerController,
@@ -399,6 +400,7 @@ const state = {
   catalogSearch: "",
   catalogCategory: "all",
   onlyVegan: false,
+  quickFilters: new Set(),
   onlyHealthy: false,
   onlyCrueltyFree: false,
   compareIds: [],
@@ -622,30 +624,41 @@ function renderProductCard(p) {
   `;
 }
 
+// Tek dokunuşla hızlı filtreler
+const QUICK_FILTERS = {
+  pregnancy: (a) => a.safety && a.safety.pregnancySafe,
+  "paraben-free": (a) => !a.items.some((i) => /paraben/i.test(`${i.rawName} ${i.inci}`)),
+  "fragrance-free": (a) =>
+    !a.items.some((i) => /(parfum|fragrance|aroma\b)/i.test(i.rawName)) &&
+    !(a.safety && a.safety.groups.some((g) => g.key === "allergen"))
+};
+
 function renderCatalog() {
-  const q = state.catalogSearch.trim().toLowerCase();
+  const matches = compileQuery(state.catalogSearch);
 
   const filtered = enrichedProducts.filter((p) => {
+    for (const key of state.quickFilters) {
+      if (QUICK_FILTERS[key] && !QUICK_FILTERS[key](p.analysis)) return false;
+    }
     if (state.selectedBrand !== "all" && p.brandId !== state.selectedBrand) return false;
     if (state.catalogCategory !== "all" && p.category !== state.catalogCategory) return false;
     if (state.onlyVegan && p.analysis.veganStatus !== "vegan") return false;
     if (state.onlyHealthy && p.analysis.healthStatus !== "healthy") return false;
     if (state.onlyCrueltyFree && !p.crueltyFree) return false;
 
-    if (q) {
-      const haystack = [
-        p.name,
-        p.brand,
-        p.categoryLabel,
-        p.description,
-        ...p.ingredients,
-        ...p.analysis.items.map((i) => i.nameTr)
-      ]
-        .join(" ")
-        .toLowerCase();
-      if (!haystack.includes(q)) return false;
-    }
-    return true;
+    const haystack = [
+      p.name,
+      p.brand,
+      p.categoryLabel,
+      p.description,
+      p.analysis.veganStatus === "vegan" ? "vegan" : "",
+      p.analysis.healthStatus === "healthy" ? "sağlıklı temiz" : "",
+      p.crueltyFree ? "cruelty-free" : "",
+      ...(p.certifications || []),
+      ...p.ingredients,
+      ...p.analysis.items.map((i) => i.nameTr)
+    ].join(" ");
+    return matches(haystack);
   });
 
   catalogCountEl.textContent = `${filtered.length} ürün gösteriliyor`;
@@ -934,7 +947,7 @@ function renderLiveAnalyzerResult() {
 // Görsel İçerik Sözlüğü
 // ============================================================
 function renderGlossary() {
-  const q = state.glossarySearch.trim().toLowerCase();
+  const matches = compileQuery(state.glossarySearch);
 
   const filtered = INGREDIENTS_DB.filter((item) => {
     if (state.glossaryFilter === "non-vegan" && item.vegan !== false) return false;
@@ -942,13 +955,7 @@ function renderGlossary() {
       return false;
     }
 
-    if (q) {
-      const hay = [item.inci, item.nameTr, item.category, item.summaryTr, ...item.aliases, ...item.tags]
-        .join(" ")
-        .toLowerCase();
-      if (!hay.includes(q)) return false;
-    }
-    return true;
+    return matches([item.inci, item.nameTr, item.category, item.summaryTr, ...item.aliases, ...item.tags].join(" "));
   });
 
   glossaryCountEl.textContent = `${filtered.length} içerik listeleniyor`;
@@ -1104,6 +1111,29 @@ filterVeganBtn.addEventListener("click", () => {
   state.onlyVegan = !state.onlyVegan;
   filterVeganBtn.setAttribute("aria-pressed", String(state.onlyVegan));
   renderCatalog();
+});
+
+document.querySelectorAll("[data-quick-filter]").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const key = btn.dataset.quickFilter;
+    if (state.quickFilters.has(key)) state.quickFilters.delete(key);
+    else state.quickFilters.add(key);
+    btn.setAttribute("aria-pressed", String(state.quickFilters.has(key)));
+    renderCatalog();
+  });
+});
+
+// "/" tuşu açık sekmedeki arama kutusuna odaklanır
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "/" || e.ctrlKey || e.metaKey || e.altKey) return;
+  const tag = (document.activeElement && document.activeElement.tagName) || "";
+  if (/^(INPUT|TEXTAREA|SELECT)$/.test(tag) || document.activeElement?.isContentEditable) return;
+  const input = document.querySelector(".view-section:not([hidden]) input[type='search']");
+  if (input) {
+    e.preventDefault();
+    input.focus();
+    input.select();
+  }
 });
 
 filterHealthyBtn.addEventListener("click", () => {
