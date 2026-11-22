@@ -336,7 +336,9 @@ export async function searchOnline(query, { timeoutMs = 6000 } = {}) {
         source: "online"
       }));
     for (const it of items) onlineIndex.set(String(it.id), it);
-    return { items, error: false };
+    // Çevrimiçi veritabanına ulaşılamadıysa (globalApi yerel sonuçlarla döner) bunu hata olarak bildir
+    const unreachable = !Array.isArray(res) && res && res.offline === true;
+    return { items, error: unreachable && items.length === 0, warning: unreachable ? res.warning || "" : "" };
   } catch (err) {
     return { items: [], error: true };
   }
