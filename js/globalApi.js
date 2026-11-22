@@ -117,76 +117,14 @@ export function translateTurkishQuery(rawQuery) {
 const searchCache = new Map();
 let hfCatalogPromise = null;
 
-export const NETWORK_TIMEOUT_MS = 8000;
-
-function isOffline() {
-  return typeof navigator !== "undefined" && navigator && navigator.onLine === false;
-}
-
-/**
- * Zaman aşımlı JSON isteği. Gövde okuma dahil tüm istek `timeoutMs` içinde bitmezse iptal edilir.
- * Hatalar her zaman Türkçe mesajlı `Error` olarak fırlatılır (err.code: offline | timeout | network | http | parse).
- */
-export async function fetchJsonWithTimeout(url, { timeoutMs = NETWORK_TIMEOUT_MS, label = "Veritabanı", headers } = {}) {
-  const fail = (code, message, cause) => {
-    const e = new Error(message);
-    e.code = code;
-    if (cause) e.cause = cause;
-    return e;
-  };
-  if (isOffline()) {
-    throw fail("offline", `İnternet bağlantısı yok; ${label} şu anda sorgulanamıyor.`);
-  }
-  const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
-  let timer = null;
-  const timeout = new Promise((_, reject) => {
-    timer = setTimeout(() => {
-      controller?.abort();
-      reject(fail("timeout", `${label} ${Math.round(timeoutMs / 1000) || 1} saniye içinde yanıt vermedi (zaman aşımı).`));
-    }, timeoutMs);
-  });
-  const work = (async () => {
-    let res;
-    try {
-      res = await fetch(url, { headers: headers || { Accept: "application/json" }, signal: controller?.signal });
-    } catch (err) {
-      if (err && err.name === "AbortError") {
-        throw fail("timeout", `${label} ${Math.round(timeoutMs / 1000) || 1} saniye içinde yanıt vermedi (zaman aşımı).`, err);
-      }
-      throw fail("network", `${label} bağlantısı kurulamadı. İnternet bağlantınızı kontrol edip tekrar deneyin.`, err);
-    }
-    if (!res.ok) {
-      throw fail("http", `${label} yanıt vermedi (HTTP ${res.status}).`);
-    }
-    try {
-      return await res.json();
-    } catch (err) {
-      if (err && err.name === "AbortError") {
-        throw fail("timeout", `${label} ${Math.round(timeoutMs / 1000) || 1} saniye içinde yanıt vermedi (zaman aşımı).`, err);
-      }
-      throw fail("parse", `${label} geçersiz (okunamayan) bir yanıt döndürdü.`, err);
-    }
-  })();
-  work.catch(() => {}); // yarışı kaybeden taraf işlenmemiş red bırakmasın
-  try {
-    return await Promise.race([work, timeout]);
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
 /**
  * Hugging Face (The Beauty API) 1.000 markalık tam INCI katalog JSON'unu bir kez yükleyip önbelleğe alır.
  */
 export async function loadHfCatalog() {
   if (!hfCatalogPromise) {
-    hfCatalogPromise = fetchJsonWithTimeout("js/data/beauty_catalog.json", { timeoutMs: 15000, label: "INCI arşivi" })
-      .then((rows) => (Array.isArray(rows) ? rows.filter((r) => r && typeof r === "object") : []))
-      .catch(() => {
-        // Başarısız yüklemeyi önbelleğe alma: bir sonraki çağrıda yeniden denensin
-        hfCatalogPromise = null;
-        return [];
-      });
+    hfCatalogPromise = fetch("js/data/beauty_catalog.json")
+      .then((res) => (res.ok ? res.json() : []))
+      .catch(() => []);
   }
   return hfCatalogPromise;
 }
@@ -198,9 +136,9 @@ function normalizeHfProduct(row) {
   return {
     id: row.id,
     barcode: (row.g && row.g[0]) || "",
-    brand: row.b || "Bilinmeyen Marka",
-    brandId: String(row.b || "marka").toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-    name: row.s ? `${row.n} (${row.s})` : row.n || "Kozmetik Ürünü",
+    brand: row.b,
+    brandId: row.b.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+    name: row.s ? `${row.n} (${row.s})` : row.n,
     categoryLabel: row.c || "Kozmetik & Bakım",
     image,
     hasRealImage: Boolean(row.img),
@@ -231,11 +169,14 @@ async function queryMakeupApi({ brand = "", categoryTerm = "" }) {
   if (mBrand) params.set("brand", mBrand);
   if (mType) params.set("product_type", mType);
 
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 4500);
   try {
-    const arr = await fetchJsonWithTimeout(
-      `https://makeup-api.herokuapp.com/api/v1/products.json?${params.toString()}`,
-      { timeoutMs: 4500, label: "Makeup API" }
-    );
+    const res = await fetch(`https://makeup-api.herokuapp.com/api/v1/products.json?${params.toString()}`, {
+      signal: controller.signal
+    });
+    if (!res.ok) return [];
+    const arr = await res.json();
     if (!Array.isArray(arr)) return [];
 
     return arr.slice(0, 20).map((m) => {
@@ -263,6 +204,8 @@ async function queryMakeupApi({ brand = "", categoryTerm = "" }) {
     });
   } catch {
     return [];
+  } finally {
+    clearTimeout(timer);
   }
 }
 
@@ -286,7 +229,7 @@ function findMatchingLocalProducts({ query = "", brand = "", categoryTerm = "" }
   };
 
   return PRODUCTS_DATA.filter((p) => {
-    const hay = `${p.brand} ${p.name} ${p.categoryLabel} ${p.description} ${(p.ingredients || []).join(" ")}`.toLowerCase();
+    const hay = `${p.brand} ${p.name} ${p.categoryLabel} ${p.description} ${p.ingredients.join(" ")}`.toLowerCase();
 
     if (bNorm && !p.brand.toLowerCase().includes(bNorm)) return false;
     if (cNorm) {
@@ -304,7 +247,7 @@ function findMatchingLocalProducts({ query = "", brand = "", categoryTerm = "" }
     return true;
   }).map((p) => ({
     ...p,
-    ingredientsText: (p.ingredients || []).join(", "),
+    ingredientsText: p.ingredients.join(", "),
     hasRealImage: true,
     source: "local",
     sourceLabel: "MakeYUP Seçkisi"
@@ -321,9 +264,8 @@ function normalizeApiProduct(raw) {
     raw.product_name ||
     raw.product_name_en ||
     `Kozmetik Ürünü (${code})`;
-  const safeName = String(name);
 
-  const brandRaw = (typeof raw.brands === "string" && raw.brands.split(",")[0].trim()) || "Diğer Marka";
+  const brandRaw = raw.brands ? raw.brands.split(",")[0].trim() : "Diğer Marka";
   // Yüksek çözünürlüklü görseli (image_front_url / image_url) önceliklendir — 100/200px thumbnail'i büyütüp pikselleştirme!
   let image = [raw.image_front_url, raw.image_url, raw.image_front_small_url]
     .find((u) => typeof u === "string" && u.trim().length > 0)
@@ -332,9 +274,8 @@ function normalizeApiProduct(raw) {
     image = image.replace(/\.(100|200)\.(jpe?g|png|webp)(\?.*)?$/i, ".400.$2$3");
   }
 
-  let ingredientsText = String(
-    raw.ingredients_text_en || raw.ingredients_text || raw.ingredients_text_tr || ""
-  );
+  let ingredientsText =
+    raw.ingredients_text_en || raw.ingredients_text || raw.ingredients_text_tr || "";
 
   if (!ingredientsText && Array.isArray(raw.ingredients) && raw.ingredients.length > 0) {
     ingredientsText = raw.ingredients
@@ -343,12 +284,12 @@ function normalizeApiProduct(raw) {
       .join(", ");
   }
 
-  const labels = Array.isArray(raw.labels_tags) ? raw.labels_tags.filter((l) => typeof l === "string") : [];
+  const labels = Array.isArray(raw.labels_tags) ? raw.labels_tags : [];
   const crueltyFree = labels.some(
     (l) => l.includes("cruelty-free") || l.includes("not-tested-on-animals")
   );
 
-  const categoryLabel = typeof raw.categories === "string" && raw.categories.trim()
+  const categoryLabel = raw.categories
     ? raw.categories.split(",")[0].trim().slice(0, 34)
     : "Kozmetik & Bakım";
 
@@ -357,7 +298,7 @@ function normalizeApiProduct(raw) {
     barcode: code,
     brand: brandRaw,
     brandId: brandRaw.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-    name: safeName.trim(),
+    name: name.trim(),
     categoryLabel,
     image: image || "assets/images/foundation.jpg",
     hasRealImage: Boolean(image),
@@ -389,8 +330,11 @@ async function queryObfEndpoint(terms, page, pageSize, host = "world.openbeautyf
   }
 
   const url = `https://${host}/cgi/search.pl?${params.toString()}`;
-  const data = await fetchJsonWithTimeout(url, { label: "Küresel veritabanı" });
-  return data && typeof data === "object" ? data : {};
+  const response = await fetch(url, { headers: { Accept: "application/json" } });
+  if (!response.ok) {
+    throw new Error(`Küresel veritabanı yanıt vermedi (HTTP ${response.status}).`);
+  }
+  return response.json();
 }
 
 /**
@@ -404,11 +348,6 @@ export async function searchGlobalProducts({
   page = 1,
   pageSize = 100
 } = {}) {
-  query = String(query ?? "");
-  brand = String(brand ?? "");
-  categoryTerm = String(categoryTerm ?? "");
-  page = Math.max(1, Number(page) || 1);
-  pageSize = Math.max(1, Number(pageSize) || 100);
   const translatedQuery = translateTurkishQuery(query);
   const combinedTerms = [translatedQuery, brand, categoryTerm]
     .map((s) => String(s || "").trim())
@@ -420,31 +359,22 @@ export async function searchGlobalProducts({
     return searchCache.get(cacheKey);
   }
 
-  let totalCount = 0;
-  let rawProducts = [];
-  let primaryError = null;
-  try {
-    let data = await queryObfEndpoint(combinedTerms, page, pageSize, "world.openbeautyfacts.org");
-    totalCount = Number(data.count || 0);
-    rawProducts = Array.isArray(data.products) ? data.products : [];
+  let data = await queryObfEndpoint(combinedTerms, page, pageSize, "world.openbeautyfacts.org");
+  let totalCount = Number(data.count || 0);
+  let rawProducts = Array.isArray(data.products) ? data.products : [];
 
-    // Çok dar çok-kelimeli bir aramada 0 sonuç dönerse ilk anlamlı kelimeyle yedek arama yap
-    if (totalCount === 0 && page === 1 && combinedTerms.includes(" ")) {
-      const fallbackTerm = brand || translatedQuery.split(/\s+/)[0] || categoryTerm;
-      if (fallbackTerm && fallbackTerm !== combinedTerms) {
-        data = await queryObfEndpoint(fallbackTerm, page, pageSize, "world.openbeautyfacts.org");
-        totalCount = Number(data.count || 0);
-        rawProducts = Array.isArray(data.products) ? data.products : [];
-      }
+  // Çok dar çok-kelimeli bir aramada 0 sonuç dönerse ilk anlamlı kelimeyle yedek arama yap
+  if (totalCount === 0 && page === 1 && combinedTerms.includes(" ")) {
+    const fallbackTerm = brand || translatedQuery.split(/\s+/)[0] || categoryTerm;
+    if (fallbackTerm && fallbackTerm !== combinedTerms) {
+      data = await queryObfEndpoint(fallbackTerm, page, pageSize, "world.openbeautyfacts.org");
+      totalCount = Number(data.count || 0);
+      rawProducts = Array.isArray(data.products) ? data.products : [];
     }
-  } catch (err) {
-    primaryError = err instanceof Error ? err : new Error("Küresel veritabanına ulaşılamadı.");
-    // Sonraki sayfalarda yerel yedek yok: anlaşılır Türkçe hatayla reddet
-    if (page !== 1) throw primaryError;
   }
 
   // Tek veritabanına bağlı kalma: arama yapıldığında Open Products Facts'ten de ek kozmetik sonuçları birleştir
-  if (!primaryError && combinedTerms && page === 1 && rawProducts.length < 25) {
+  if (combinedTerms && page === 1 && rawProducts.length < 25) {
     try {
       const opfData = await queryObfEndpoint(combinedTerms, 1, 20, "world.openproductsfacts.org");
       const opfRaw = Array.isArray(opfData.products) ? opfData.products : [];
@@ -465,7 +395,7 @@ export async function searchGlobalProducts({
   }
 
   const normalized = rawProducts
-    .filter((p) => p && p.code && (p.product_name || p.product_name_en || p.product_name_tr))
+    .filter((p) => p.code && (p.product_name || p.product_name_en || p.product_name_tr))
     .map(normalizeApiProduct);
 
   normalized.sort((a, b) => {
@@ -492,8 +422,8 @@ export async function searchGlobalProducts({
       if (qLower || bLower || cLower) {
         hfMatches = hfRows
           .filter((r) => {
-            const hay = `${r.b || ""} ${r.n || ""} ${r.c || ""} ${r.s || ""}`.toLowerCase();
-            if (bLower && !String(r.b || "").toLowerCase().includes(bLower)) return false;
+            const hay = `${r.b} ${r.n} ${r.c} ${r.s}`.toLowerCase();
+            if (bLower && !r.b.toLowerCase().includes(bLower)) return false;
             if (cLower && !hay.includes(cLower)) return false;
             if (qLower && !hay.includes(qLower) && !hay.includes(qTrans)) return false;
             return true;
@@ -510,7 +440,7 @@ export async function searchGlobalProducts({
 
     // Makyaj kategorisi/markası arandıysa Makeup API'den de ek sonuç getir
     const makeupMatches =
-      !primaryError && (brand || categoryTerm) && normalized.length < 30
+      (brand || categoryTerm) && normalized.length < 30
         ? await queryMakeupApi({ brand, categoryTerm })
         : [];
 
@@ -522,20 +452,6 @@ export async function searchGlobalProducts({
       return true;
     });
     totalCount = Math.max(totalCount + hfMatches.length + localMatches.length, finalProducts.length);
-  }
-
-  if (primaryError) {
-    // Ağ yokken/hata varken yerel + arşiv sonuçları varsa yine göster; yoksa Türkçe hatayla reddet.
-    if (!finalProducts.length) throw primaryError;
-    return {
-      products: finalProducts,
-      totalCount: finalProducts.length,
-      page,
-      pageSize,
-      hasMore: false,
-      offline: true,
-      warning: `${primaryError.message} Yalnızca yerel katalog ve INCI arşivi sonuçları gösteriliyor.`
-    };
   }
 
   const result = {

@@ -1,5 +1,3 @@
-<p align="center"><img src="assets/brand/logo.svg" alt="MakeYUP" width="260" /></p>
-
 # MakeYUP — Makyaj İçerik, Sağlık & Vegan Analiz Rehberi
 
 ![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)
@@ -24,31 +22,21 @@
 
 ```text
 MakeYUP/
-├── index.html               # Uygulama kabuğu (üst menü, alt sekme çubuğu, #app)
+├── index.html               # Ana HTML5 uygulama yapısı
 ├── css/
-│   ├── tokens.css           # Tasarım değişkenleri (renk, boşluk, açık/koyu tema)
-│   ├── base.css             # Sıfırlama, tipografi, başlık/sekme çubuğu/alt bilgi
-│   ├── components.css       # Ortak bileşenler (kart, çip, puan halkası, toast…)
-│   └── views/               # Sayfaya özel stiller (home, product, analyze, scan…)
+│   └── styles.css           # Temiz editöryel tasarım sistemi & açık/koyu tema
 ├── js/
-│   ├── main.js              # Giriş: tema, rotalar, ortak dinleyiciler, service worker
-│   ├── router.js            # Hash yönlendirici (#/urun/:id, geri/ileri, kaydırma)
-│   ├── state.js             # Veri katmanı: ürünler, arşiv, arama, analiz önbelleği
-│   ├── ui/components.js     # HTML üreten ortak bileşenler
-│   ├── views/               # Sayfalar: home, product, analyze, scan, brands, glossary, compare, favorites
-│   ├── analyzer.js          # INCI ayrıştırıcı, sağlık puanı & vegan motoru
-│   ├── flags.js, search.js, barcode.js, globalApi.js, affiliate.js
-│   ├── features/            # Favoriler, paylaşım, alternatifler
-│   └── data/                # Ürün, marka, içerik veritabanları + arşiv (JSON)
-├── urun/                    # Statik SEO ürün sayfaları (tools/build-seo.mjs üretir)
-├── v2/index.html            # Eski /v2/ bağlantılarını köke yönlendirir
-├── sw.js, manifest.webmanifest  # PWA (sürüm yayınlarken CACHE_VERSION'ı artırın)
-├── tests/                   # engine.test.mjs (motor), e2e.mjs (Playwright arayüz testi)
-├── docs/                    # ARAYUZ.md (arayüz geliştirici rehberi) ve diğer notlar
-└── assets/                  # Logo, ikonlar, ürün görselleri
+│   ├── app.js               # Arayüz, filtreleme, modal ve karşılaştırma kontrolcüsü
+│   ├── analyzer.js          # Dinamik INCI ayrıştırıcı, sağlık skoru & vegan motoru
+│   └── data/
+│       ├── brands.js        # Marka profilleri ve vegan / cruelty-free politikaları
+│       ├── ingredients.js   # Türkçe açıklamalı INCI içerik veritabanı
+│       └── products.js      # Marka marka ayrılmış makyaj ürünleri kataloğu
+├── assets/
+│   └── images/              # Ürün görselleri
+├── LICENSE                  # MIT Lisansı
+└── README.md
 ```
-
-Sürüm yayınlarken `index.html` içindeki `?v=` değerini (görünüm CSS'leri de bunu kullanır) ve `sw.js` içindeki `CACHE_VERSION`'ı güncelleyin.
 
 ## Yerel Olarak Çalıştırma
 
@@ -60,8 +48,6 @@ python -m http.server 8000
 ```
 
 Ardından tarayıcıda `http://localhost:8000` adresini açın.
-
-Testler: `node tests/engine.test.mjs` (motor) ve sunucu açıkken `node tests/e2e.mjs http://localhost:8000/` (Playwright ile telefon/masaüstü, açık/koyu tema uçtan uca testi).
 
 ## GitHub Pages ile Yayınlama
 

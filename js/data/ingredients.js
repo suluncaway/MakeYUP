@@ -9,7 +9,7 @@ export const INGREDIENTS_DB = [
   // ========================
   {
     inci: "Aqua",
-    aliases: ["water", "eau", "su", "purified water", "deionized water", "distilled water", "aqua purificata", "saf su"],
+    aliases: ["water", "eau", "su"],
     nameTr: "Saf Su",
     risk: "safe",
     riskScore: 1,
@@ -309,7 +309,7 @@ export const INGREDIENTS_DB = [
   },
   {
     inci: "Ethylhexylglycerin",
-    aliases: ["etilheksilgliserin", "ethylhexyl glycerin"],
+    aliases: ["etilheksilgliserin"],
     nameTr: "Etilheksilgliserin",
     risk: "safe",
     riskScore: 2,
@@ -445,7 +445,7 @@ export const INGREDIENTS_DB = [
   },
   {
     inci: "Squalene",
-    aliases: ["skualen"],
+    aliases: ["skualen", "shark liver oil"],
     nameTr: "Skualen",
     risk: "safe",
     riskScore: 2,
@@ -457,7 +457,7 @@ export const INGREDIENTS_DB = [
   },
   {
     inci: "Keratin",
-    aliases: ["hydrolyzed keratin"],
+    aliases: ["hydrolyzed keratin", "keratin"],
     nameTr: "Keratin",
     risk: "safe",
     riskScore: 1,
@@ -557,7 +557,7 @@ export const INGREDIENTS_DB = [
   },
   {
     inci: "PEG-100 Stearate",
-    aliases: [],
+    aliases: ["peg-10", "peg-10 dimethicone", "peg"],
     nameTr: "PEG Bileşikleri",
     risk: "moderate",
     riskScore: 4,
@@ -597,7 +597,7 @@ export const INGREDIENTS_DB = [
   // ========================
   {
     inci: "Methylparaben",
-    aliases: ["metilparaben", "sodium methylparaben"],
+    aliases: ["metilparaben", "paraben"],
     nameTr: "Metilparaben",
     risk: "high",
     riskScore: 7,
@@ -609,7 +609,7 @@ export const INGREDIENTS_DB = [
   },
   {
     inci: "Propylparaben",
-    aliases: ["propilparaben", "sodium propylparaben"],
+    aliases: ["propilparaben", "butylparaben", "isobutylparaben"],
     nameTr: "Propilparaben",
     risk: "high",
     riskScore: 8,
@@ -633,7 +633,7 @@ export const INGREDIENTS_DB = [
   },
   {
     inci: "BHT",
-    aliases: ["butylated hydroxytoluene"],
+    aliases: ["butylated hydroxytoluene", "bha", "butylated hydroxyanisole"],
     nameTr: "BHT (Sentetik Antioksidan)",
     risk: "high",
     riskScore: 7,
@@ -645,7 +645,7 @@ export const INGREDIENTS_DB = [
   },
   {
     inci: "DMDM Hydantoin",
-    aliases: [],
+    aliases: ["imidazolidinyl urea", "diazolidinyl urea", "quaternium-15", "formaldehit"],
     nameTr: "DMDM Hidantoin (Formaldehit Salıcı)",
     risk: "high",
     riskScore: 9,
@@ -669,7 +669,7 @@ export const INGREDIENTS_DB = [
   },
   {
     inci: "Mineral Oil",
-    aliases: ["paraffinum liquidum", "mineral yağ", "paraffin oil", "liquid paraffin"],
+    aliases: ["paraffinum liquidum", "petrolatum", "mineral yağ", "vazelin"],
     nameTr: "Mineral Yağ (Petrol Türevi)",
     risk: "high",
     riskScore: 7,
@@ -721,7 +721,7 @@ export const INGREDIENTS_DB = [
   },
   {
     inci: "Salicylic Acid",
-    aliases: ["beta hydroxy acid", "salisilik asit"],
+    aliases: ["bha", "salisilik asit"],
     nameTr: "Salisilik Asit (BHA)",
     risk: "safe",
     riskScore: 2,
@@ -781,7 +781,7 @@ export const INGREDIENTS_DB = [
   },
   {
     inci: "Allantoin",
-    aliases: ["alantoin"],
+    aliases: ["allantoin"],
     nameTr: "Allantoin",
     risk: "safe",
     riskScore: 1,
@@ -841,7 +841,7 @@ export const INGREDIENTS_DB = [
   },
   {
     inci: "Butylene Glycol",
-    aliases: ["bütilen glikol", "1,3-butylene glycol"],
+    aliases: ["pentylene glycol", "caprylyl glycol", "bütilen glikol"],
     nameTr: "Bütilen Glikol",
     risk: "safe",
     riskScore: 1,
@@ -1037,7 +1037,7 @@ export const INGREDIENTS_DB = [
   // ORTA & YÜKSEK RİSKLİ CİLT BAKIMI BİLEŞENLERİ
   {
     inci: "Retinol",
-    aliases: ["vitamin a"],
+    aliases: ["vitamin a", "retinal", "retinaldehyde"],
     nameTr: "Retinol (A Vitamini)",
     risk: "moderate",
     riskScore: 4,
@@ -1062,7 +1062,6 @@ export const INGREDIENTS_DB = [
   {
     inci: "Sodium Lauryl Sulfate",
     aliases: ["sls", "sodyum lauril sülfat"],
-    nameTr: "Sodyum Lauril Sülfat (SLS)",
     risk: "high",
     riskScore: 7,
     vegan: true,
@@ -1121,8 +1120,8 @@ export const INGREDIENTS_DB = [
   },
   {
     inci: "Citronellol",
-    aliases: ["sitronellol"],
-    nameTr: "Sitronellol (Koku Alerjeni)",
+    aliases: ["geraniol", "coumarin", "eugenol", "hexyl cinnamal", "benzyl salicylate", "alpha-isomethyl ionone"],
+    nameTr: "Koku Alerjeni Bileşeni",
     risk: "moderate",
     riskScore: 5,
     vegan: true,
@@ -1179,159 +1178,4 @@ export const INGREDIENTS_DB = [
     summaryTr: "Genellikle güvenlidir ancak egzamalı veya çok hassas ciltlerde nadiren hafif tahriş yapabilir.",
     tags: ["Çözücü", "Hassas Cilt Dikkat"]
   }
-
 ];
-
-// ------------------------------------------------------------------
-// Ayrı maddeler olarak tanımlanan ek kayıtlar (eskiden yanlışlıkla başka
-// maddelerin takma adı olarak eşleşiyorlardı: örn. isobutylparaben → propylparaben).
-// ------------------------------------------------------------------
-function fragranceAllergen(inci, nameTr, aliases = []) {
-  return {
-    inci,
-    aliases,
-    nameTr: `${nameTr} (Koku Alerjeni)`,
-    risk: "moderate",
-    riskScore: 5,
-    vegan: true,
-    animalSource: null,
-    category: "Koku Alerjeni",
-    summaryTr: "Parfüm veya uçucu yağlardan gelen, AB yönetmeliklerine göre etikette belirtilmesi zorunlu koku alerjenidir.",
-    tags: ["Koku Alerjeni", "Hassas Cilt Dikkat"]
-  };
-}
-
-function formaldehydeReleaser(inci, nameTr, aliases = [], extraNote = "") {
-  return {
-    inci,
-    aliases,
-    nameTr,
-    risk: "high",
-    riskScore: 9,
-    vegan: true,
-    animalSource: null,
-    category: "Koruyucu",
-    summaryTr: `Formaldehit salıcı koruyucudur; güçlü kontakt alerjen olduğundan kaçınılması önerilir.${extraNote}`,
-    tags: ["Yüksek Alerjen", "Kaçınılmalı"]
-  };
-}
-
-INGREDIENTS_DB.push(
-  {
-    inci: "Butylparaben",
-    aliases: ["bütilparaben", "butilparaben", "sodium butylparaben"],
-    nameTr: "Bütilparaben",
-    risk: "high",
-    riskScore: 8,
-    vegan: true,
-    animalSource: null,
-    category: "Koruyucu (Paraben)",
-    summaryTr: "Uzun zincirli paraben türüdür; AB'de propilparaben ile toplam %0,14 ile sınırlıdır ve hormonal etki şüphesi nedeniyle yüksek riskli kabul edilir.",
-    tags: ["Paraben", "Endokrin Şüphesi", "Yüksek Risk"]
-  },
-  {
-    inci: "Isobutylparaben",
-    aliases: ["izobütilparaben", "izobutilparaben", "sodium isobutylparaben"],
-    nameTr: "İzobütilparaben",
-    risk: "high",
-    riskScore: 9,
-    vegan: true,
-    animalSource: null,
-    category: "Koruyucu (Paraben)",
-    summaryTr: "Güvenlik verisi yetersiz olduğu için 2014'ten beri AB kozmetiklerinde YASAKLI olan paraben türüdür.",
-    tags: ["Paraben", "AB'de Yasaklı", "Yüksek Risk"]
-  },
-  {
-    inci: "BHA",
-    aliases: ["butylated hydroxyanisole", "bütillenmiş hidroksianisol"],
-    nameTr: "BHA (Bütillenmiş Hidroksianisol)",
-    risk: "high",
-    riskScore: 7,
-    vegan: true,
-    animalSource: null,
-    category: "Sentetik Antioksidan",
-    summaryTr: "Sentetik antioksidan koruyucudur; olası endokrin bozucu ve kanserojen şüphesi nedeniyle temiz kozmetikte kaçınılır. (Salisilik asit/BHA asit ile karıştırılmamalıdır.)",
-    tags: ["Endokrin Şüphesi", "Kaçınılmalı"]
-  },
-  {
-    inci: "Petrolatum",
-    aliases: ["vazelin", "petroleum jelly", "white petrolatum", "vaseline"],
-    nameTr: "Vazelin (Petrolatum)",
-    risk: "moderate",
-    riskScore: 4,
-    vegan: true,
-    animalSource: null,
-    category: "Petrol Türevi / Oklüzif",
-    summaryTr: "Petrol kaynaklı yoğun oklüzif mumdur; nem kaybını güçlü şekilde önler ancak akneye meyilli ciltlerde ağır gelebilir.",
-    tags: ["Mineral Mum", "Orta Risk"]
-  },
-  {
-    inci: "Formaldehyde",
-    aliases: ["formaldehit", "formalin", "methylene glycol"],
-    nameTr: "Formaldehit",
-    risk: "high",
-    riskScore: 10,
-    vegan: true,
-    animalSource: null,
-    category: "Koruyucu",
-    summaryTr: "Kanserojen (CMR 1B) ve güçlü sensitizandır; AB kozmetiklerinde yasaklıdır.",
-    tags: ["AB'de Yasaklı", "Kaçınılmalı"]
-  },
-  formaldehydeReleaser("Imidazolidinyl Urea", "İmidazolidinil Üre"),
-  formaldehydeReleaser("Diazolidinyl Urea", "Diazolidinil Üre"),
-  formaldehydeReleaser("Quaternium-15", "Quaternium-15", [], " AB'de yasaklıdır."),
-  {
-    inci: "Retinal",
-    aliases: ["retinaldehyde", "retinaldehit"],
-    nameTr: "Retinal (Retinaldehit)",
-    risk: "moderate",
-    riskScore: 4,
-    vegan: true,
-    animalSource: null,
-    category: "Yaşlanma Karşıtı Aktif",
-    summaryTr: "Retinolden bir adım daha güçlü A vitamini türevidir; hassasiyet yapabilir, hamilelikte kullanılmamalıdır.",
-    tags: ["Retinoid", "Güçlü Aktif"]
-  },
-  {
-    inci: "Pentylene Glycol",
-    aliases: ["pentilen glikol"],
-    nameTr: "Pentilen Glikol",
-    risk: "safe",
-    riskScore: 1,
-    vegan: true,
-    animalSource: null,
-    category: "Nemlendirici / Çözücü",
-    summaryTr: "Nem tutucu ve koruyucu etkinliğini destekleyen hafif glikoldür; genellikle iyi tolere edilir.",
-    tags: ["Nemlendirici", "Düşük Risk"]
-  },
-  {
-    inci: "Caprylyl Glycol",
-    aliases: ["kaprilil glikol"],
-    nameTr: "Kaprilil Glikol",
-    risk: "safe",
-    riskScore: 1,
-    vegan: true,
-    animalSource: null,
-    category: "Nemlendirici / Koruyucu Destekleyici",
-    summaryTr: "Nemlendirici ve koruyucu sistemini destekleyen yağ alkolü türevidir; düşük tahriş potansiyeline sahiptir.",
-    tags: ["Nemlendirici", "Düşük Risk"]
-  },
-  {
-    inci: "Shark Liver Oil",
-    aliases: ["köpekbalığı karaciğer yağı", "squalus acanthias liver oil"],
-    nameTr: "Köpekbalığı Karaciğer Yağı",
-    risk: "safe",
-    riskScore: 2,
-    vegan: false,
-    animalSource: "Köpekbalığı karaciğerinden elde edilen hayvansal yağ.",
-    category: "Hayvansal Yağ",
-    summaryTr: "Köpekbalığı karaciğerinden elde edilen hayvansal yağdır; VEGAN DEĞİLDİR.",
-    tags: ["Hayvansal Kaynaklı", "Vegan Değil"]
-  },
-  fragranceAllergen("Geraniol", "Geraniol"),
-  fragranceAllergen("Coumarin", "Kumarin", ["kumarin"]),
-  fragranceAllergen("Eugenol", "Öjenol"),
-  fragranceAllergen("Hexyl Cinnamal", "Heksil Sinnamal", ["hexyl cinnamaldehyde"]),
-  fragranceAllergen("Benzyl Salicylate", "Benzil Salisilat"),
-  fragranceAllergen("Alpha-Isomethyl Ionone", "Alfa-İzometil İonon")
-);

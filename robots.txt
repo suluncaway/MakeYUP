@@ -1,5 +1,0 @@
-# MakeYUP — tools/build-seo.mjs tarafından üretildi
-User-agent: *
-Allow: /
-
-Sitemap: https://suluncaway.github.io/MakeYUP/sitemap.xml
