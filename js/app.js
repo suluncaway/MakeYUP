@@ -1016,6 +1016,7 @@ function switchView(viewName) {
     stopScannerUI();
   }
   state.activeView = viewName;
+  document.body.dataset.view = viewName;
 
   document.querySelectorAll(".nav-tab, .mobile-nav-item").forEach((btn) => {
     btn.classList.toggle("is-active", btn.dataset.view === viewName);

@@ -2888,3 +2888,153 @@ a:focus-visible {
   align-items: center;
   gap: 0.5rem;
 }
+
+/* ============================================================
+   SADE TEMA — süssüz, düz ve okunaklı görünüm
+   Mevcut bileşenlerin hepsi korunur; yalnızca görsel gürültü azaltılır.
+   ============================================================ */
+:root {
+  --bg-page: #fafafa;
+  --bg-surface: #ffffff;
+  --bg-subtle: #f4f4f5;
+  --bg-elevated: #ffffff;
+  --bg-studio: #ffffff;
+  --bg-studio-end: #ffffff;
+  --text-primary: #18181b;
+  --text-secondary: #52525b;
+  --text-muted: #71717a;
+  --border-subtle: #e7e7ea;
+  --border-strong: #d4d4d8;
+  --accent: #9d3f58;
+  --accent-hover: #83334a;
+  --accent-soft: rgba(157, 63, 88, 0.08);
+  --accent-glow: transparent;
+  --botanical-glow: transparent;
+  --shadow-sm: none;
+  --shadow-md: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.12);
+  --shadow-card-hover: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --font-display: var(--font-sans);
+}
+
+[data-theme="dark"] {
+  --bg-page: #111113;
+  --bg-surface: #18181b;
+  --bg-subtle: #222226;
+  --bg-elevated: #1f1f23;
+  --bg-studio: #18181b;
+  --bg-studio-end: #18181b;
+  --text-primary: #f4f4f5;
+  --text-secondary: #c4c4cc;
+  --text-muted: #9a9aa3;
+  --border-subtle: #2a2a2f;
+  --border-strong: #3a3a40;
+  --accent: #e38aa2;
+  --accent-hover: #ee9db3;
+  --accent-soft: rgba(227, 138, 162, 0.12);
+  --shadow-md: none;
+  --shadow-card-hover: none;
+}
+
+/* Başlıklar: tek yazı tipi, daha küçük ve sakin */
+h1, h2, h3, h4,
+.section-head h2,
+.modal-title,
+.brand-name {
+  font-family: var(--font-sans) !important;
+  font-variation-settings: normal !important;
+  letter-spacing: -0.015em;
+}
+.section-head h2 { font-size: clamp(1.25rem, 2vw, 1.5rem); font-weight: 700; }
+.section-sub { font-size: 0.88rem; color: var(--text-muted); max-width: 60ch; }
+.section-head { margin-bottom: 1rem; }
+
+/* Üst çubuk: düz beyaz, bulanıklık yok */
+.site-header {
+  background: var(--bg-surface) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-bottom: 1px solid var(--border-subtle);
+  box-shadow: none !important;
+}
+.brand-mark { background: var(--accent) !important; box-shadow: none !important; }
+.brand-sub { display: none; }
+.main-nav { background: transparent !important; border: 0 !important; box-shadow: none !important; gap: 0.15rem; }
+.nav-tab { font-weight: 500; box-shadow: none !important; }
+.nav-tab.is-active { background: var(--bg-subtle) !important; color: var(--text-primary) !important; font-weight: 600; }
+
+/* Hero: yalnızca ana sayfada, kısa başlık + arama */
+body:not([data-view="global"]) .hero { display: none; }
+.hero { padding: 2rem 0 0.5rem; }
+.hero::before { display: none; }
+.hero-grid { grid-template-columns: 1fr !important; max-width: 640px; }
+.hero h1 { font-size: clamp(1.6rem, 3.4vw, 2.1rem) !important; font-weight: 700; line-height: 1.2; margin-bottom: 0.5rem; }
+.hero-lead { font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 1rem; }
+.hero-quick-search { box-shadow: none !important; backdrop-filter: none !important; border: 1px solid var(--border-strong); background: var(--bg-surface); }
+
+/* Butonlar ve çipler: gölgesiz, düz */
+.btn, .btn-primary, .icon-btn, .chip, .search-input, .filter-panel {
+  box-shadow: none !important;
+}
+.btn-primary:hover { transform: none !important; }
+.chip { font-weight: 500; border-color: var(--border-subtle); background: var(--bg-surface); }
+.chip.is-active,
+.chip-toggle[aria-pressed="true"] {
+  background: var(--text-primary) !important;
+  color: var(--bg-surface) !important;
+  border-color: var(--text-primary) !important;
+}
+.filter-panel { background: transparent !important; border: 0 !important; padding: 0 !important; }
+.search-input { background: var(--bg-surface); border: 1px solid var(--border-strong); }
+.search-input:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px var(--accent-soft) !important; }
+
+/* Kartlar: ince çerçeve, hareket efekti yok */
+.product-card,
+.brand-card,
+.inci-item,
+.stat-box,
+.skin-panel,
+.safety-panel,
+.report-hero,
+.vegan-callout,
+.modal-surface,
+.hero-legend {
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+.product-card { border: 1px solid var(--border-subtle) !important; }
+.product-card:hover { transform: none !important; border-color: var(--border-strong) !important; }
+.card-media,
+.card-media.is-api-photo,
+[data-theme="dark"] .card-media.is-api-photo,
+.report-thumb,
+[data-theme="dark"] .report-thumb,
+.compare-head img,
+[data-theme="dark"] .compare-head img {
+  background: var(--bg-subtle) !important;
+}
+
+/* Rapor: bej bloklar yerine sade yüzeyler */
+.report-hero { background: var(--bg-surface) !important; border: 1px solid var(--border-subtle); }
+.stat-box { border: 1px solid var(--border-subtle); }
+.inci-item { border: 1px solid var(--border-subtle) !important; background: var(--bg-surface) !important; }
+.skin-panel { background: var(--bg-surface) !important; border: 1px solid var(--border-subtle); }
+
+/* Modal: bulanık arka plan yerine düz karartma */
+.modal-dialog::backdrop { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; background: rgba(0, 0, 0, 0.45) !important; }
+
+/* Mobil alt menü: düz */
+@media (max-width: 760px) {
+  .mobile-nav { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; background: var(--bg-surface) !important; box-shadow: none !important; border-top: 1px solid var(--border-subtle); }
+  .mobile-nav-scan-pill { background: var(--accent) !important; box-shadow: none !important; }
+  .hero { padding-top: 1.25rem; }
+}
+
+/* Hareket azaltma */
+* { transition-duration: 0.12s !important; }
+/* Ana sayfada katalog araması hemen altta olduğundan hero araması gizlenir */
+.hero-quick-search { display: none !important; }
+.hero { padding-bottom: 0; }

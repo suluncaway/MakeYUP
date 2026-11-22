@@ -16,12 +16,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
-    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
     rel="stylesheet"
   />
   <link rel="stylesheet" href="css/styles.css" />
 </head>
-<body>
+<body data-view="global">
   <!-- Üst Gezinme Çubuğu -->
   <header class="site-header">
     <div class="container header-inner">
@@ -41,7 +41,7 @@
 
       <nav class="main-nav" aria-label="Ana Menü">
         <button type="button" class="nav-tab is-active" data-view="global">
-          🌍 Dünya Kataloğu
+          Keşfet
         </button>
         <button type="button" class="nav-tab" data-view="catalog">
           Öne Çıkanlar
@@ -50,7 +50,7 @@
           Markalar
         </button>
         <button type="button" class="nav-tab" data-view="scanner">
-          📷 Barkod Tara
+          Barkod Tara
         </button>
         <button type="button" class="nav-tab" data-view="analyzer">
           İçerik Analizörü
@@ -96,16 +96,8 @@
     <section class="hero">
       <div class="container hero-grid">
         <div class="hero-copy">
-          <div class="eyebrow">
-            <span class="eyebrow-dot" aria-hidden="true"></span>
-            Açık Kaynaklı INCI İçerik &amp; Vegan Rehberi
-          </div>
-          <h1>Makyaj ve cilt bakımının içinde <em>ne var?</em></h1>
-          <p class="hero-lead">
-            Dünyadaki on binlerce makyaj ve cilt bakım ürününü marka marka canlı ara veya barkodunu okut.
-            Ürünlerin <strong>sağlık skorunu</strong>, <strong>vegan olup olmadığını</strong> ve
-            her bir bileşenin cildine etkisini tek bakışta gör.
-          </p>
+          <h1>Makyajının içinde ne var?</h1>
+          <p class="hero-lead">Ürünü ara, barkodunu okut ya da içerik listesini yapıştır; sağlık skorunu ve vegan durumunu hemen gör.</p>
           <form id="heroQuickSearchForm" class="hero-quick-search" role="search" aria-label="Hızlı küresel ürün arama">
             <div class="search-wrap">
               <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -116,79 +108,13 @@
                 type="search"
                 id="heroQuickSearchInput"
                 class="search-input"
-                placeholder="Marka veya ürün ara (örn: CeraVe, The Ordinary, Güneş Kremi)..."
+                placeholder="Marka veya ürün ara (örn: CeraVe, ruj)"
                 autocomplete="off"
               />
             </div>
             <button type="submit" class="btn btn-primary">Ara</button>
           </form>
-
-          <div class="hero-cta">
-            <button type="button" class="btn btn-primary" data-jump="global">
-              🌍 Dünyadaki Tüm Ürünleri Ara
-            </button>
-            <button type="button" class="btn btn-outline" data-jump="scanner">
-              📷 Barkod Tarat
-            </button>
-            <button type="button" class="btn btn-ghost" data-jump="analyzer">
-              İçerik Yapıştır
-            </button>
-          </div>
-
-          <div class="hero-stats" aria-label="Platform metrikleri">
-            <div class="hero-stat">
-              <strong>81.000+</strong>
-              <span>Küresel Ürün</span>
-            </div>
-            <div class="hero-stat">
-              <strong>95+</strong>
-              <span>INCI Analizi</span>
-            </div>
-            <div class="hero-stat">
-              <strong>Canlı</strong>
-              <span>Barkod Tarama</span>
-            </div>
-          </div>
         </div>
-
-        <!-- Görsel Bilgi Kartı -->
-        <aside class="hero-legend" aria-label="Değerlendirme Göstergeleri">
-          <div class="legend-title">Görsel Puanlama Sistemi</div>
-          <div class="legend-list">
-            <div class="legend-item">
-              <span class="legend-pill pill-safe">78 – 100</span>
-              <div>
-                <strong>Sağlıklı &amp; Temiz</strong>
-                <p>Cilt dostu, düşük riskli ve temiz formül.</p>
-              </div>
-            </div>
-            <div class="legend-item">
-              <span class="legend-pill pill-moderate">52 – 77</span>
-              <div>
-                <strong>Dikkatli Kullanım</strong>
-                <p>Parfüm, silikon veya hassasiyet yapabilecek maddeler içerir.</p>
-              </div>
-            </div>
-            <div class="legend-item">
-              <span class="legend-pill pill-high">0 – 51</span>
-              <div>
-                <strong>Riskli İçerik</strong>
-                <p>Paraben, talk, BHT gibi kaçınılması önerilen maddeler içerir.</p>
-              </div>
-            </div>
-            <div class="legend-divider"></div>
-            <div class="legend-vegan-row">
-              <span class="tag tag-vegan">
-                <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M16.5 3.5c-5.5 0-10 2.5-12 7.5-.7 1.7-.9 3.6-.7 5.5 1.9.2 3.8 0 5.5-.7 5-2 7.5-6.5 7.2-12.3zm-8.6 9.8c-.4.4-1 .4-1.4 0s-.4-1 0-1.4l4.5-4.5c.4-.4 1-.4 1.4 0s.4 1 0 1.4l-4.5 4.5z"/></svg>
-                %100 Vegan
-              </span>
-              <span class="tag tag-nonvegan">
-                <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd"/></svg>
-                Hayvansal İçerik
-              </span>
-            </div>
-          </div>
-        </aside>
       </div>
     </section>
 
