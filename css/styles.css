@@ -3038,3 +3038,15 @@ body:not([data-view="global"]) .hero { display: none; }
 /* Ana sayfada katalog araması hemen altta olduğundan hero araması gizlenir */
 .hero-quick-search { display: none !important; }
 .hero { padding-bottom: 0; }
+
+/* Mobilde yatay taşma düzeltmesi: çip şeritleri kendi içinde kaysın, sayfayı genişletmesin */
+.filter-panel,
+.filter-groups,
+.filter-group,
+.analyzer-layout > *,
+.analyzer-input-card,
+.analyzer-result-card {
+  min-width: 0;
+  max-width: 100%;
+}
+html, body { overflow-x: clip; }
