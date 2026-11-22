@@ -4,6 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MakeYUP — Küresel Makyaj &amp; Cilt Bakımı İçerik, Sağlık &amp; Vegan Rehberi</title>
+  <link
+    rel="icon"
+    type="image/svg+xml"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28' fill='none'%3E%3Crect width='28' height='28' rx='8' fill='%23a64d63'/%3E%3Cpath d='M14 4.5C9.2 8.2 7 12.6 7 16.6C7 20.6 10.1 23.5 14 23.5C17.9 23.5 21 20.6 21 16.6C21 12.6 18.8 8.2 14 4.5Z' stroke='%23fffbf8' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M14 10.5V20' stroke='%23fffbf8' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M14 15L17.5 12.5' stroke='%23fffbf8' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E"
+  />
   <meta
     name="description"
     content="Dünyadaki makyaj malzemeleri ve cilt bakım ürünlerinin INCI içeriklerini canlı arama ve barkod tarama ile görsel analiz eden açık kaynaklı rehber."
@@ -101,6 +106,23 @@
             Ürünlerin <strong>sağlık skorunu</strong>, <strong>vegan olup olmadığını</strong> ve
             her bir bileşenin cildine etkisini tek bakışta gör.
           </p>
+          <form id="heroQuickSearchForm" class="hero-quick-search" role="search" aria-label="Hızlı küresel ürün arama">
+            <div class="search-wrap">
+              <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <circle cx="11" cy="11" r="8"/>
+                <path d="m21 21-4.35-4.35"/>
+              </svg>
+              <input
+                type="search"
+                id="heroQuickSearchInput"
+                class="search-input"
+                placeholder="Marka veya ürün ara (örn: CeraVe, The Ordinary, Güneş Kremi)..."
+                autocomplete="off"
+              />
+            </div>
+            <button type="submit" class="btn btn-primary">Ara</button>
+          </form>
+
           <div class="hero-cta">
             <button type="button" class="btn btn-primary" data-jump="global">
               🌍 Dünyadaki Tüm Ürünleri Ara
@@ -111,6 +133,21 @@
             <button type="button" class="btn btn-ghost" data-jump="analyzer">
               İçerik Yapıştır
             </button>
+          </div>
+
+          <div class="hero-stats" aria-label="Platform metrikleri">
+            <div class="hero-stat">
+              <strong>81.000+</strong>
+              <span>Küresel Ürün</span>
+            </div>
+            <div class="hero-stat">
+              <strong>95+</strong>
+              <span>INCI Analizi</span>
+            </div>
+            <div class="hero-stat">
+              <strong>Canlı</strong>
+              <span>Barkod Tarama</span>
+            </div>
           </div>
         </div>
 
@@ -207,6 +244,14 @@
               </button>
             </div>
           </div>
+        </div>
+
+        <!-- Aktif Filtre Özeti -->
+        <div id="globalActiveFilters" class="active-filters-bar" hidden aria-live="polite">
+          <div id="globalActiveFilterTags" class="active-filter-tags"></div>
+          <button type="button" id="globalResetFiltersBtn" class="btn btn-ghost btn-sm active-filters-clear">
+            ✕ Filtreleri Temizle
+          </button>
         </div>
 
         <!-- Küresel Sonuçlar Container -->
@@ -539,6 +584,9 @@
       </div>
     </div>
   </footer>
+
+  <!-- Yukarı Çık Butonu -->
+  <button type="button" id="scrollTopBtn" class="scroll-top-btn" hidden aria-label="Yukarı çık" title="Yukarı çık">↑</button>
 
   <script type="module" src="js/app.js"></script>
 </body>

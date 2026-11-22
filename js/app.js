@@ -187,7 +187,7 @@ function renderAnalysisReport(analysis, options = {}) {
 
   return `
     <div class="report-hero ${product ? "report-hero-with-photo" : ""}">
-      ${product ? `<img class="report-thumb" src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}" />` : ""}
+      ${product ? `<img class="report-thumb" src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}" onerror="this.onerror=null;this.src='assets/images/foundation.jpg';" />` : ""}
       ${renderLargeRing(analysis.healthScore, analysis.healthStatus)}
       <div class="report-verdict">
         <span class="tag ${statusTagClass}">${escapeHtml(analysis.healthLabel)}</span>
@@ -322,6 +322,10 @@ const INCI_PRESETS = {
 // ============================================================
 // DOM Referansları
 // ============================================================
+const heroQuickSearchFormEl = document.getElementById("heroQuickSearchForm");
+const heroQuickSearchInputEl = document.getElementById("heroQuickSearchInput");
+const scrollTopBtn = document.getElementById("scrollTopBtn");
+
 const brandFilterStripEl = document.getElementById("brandFilterStrip");
 const groupByBrandBtn = document.getElementById("groupByBrandBtn");
 
@@ -333,6 +337,9 @@ const globalGroupByBrandBtn = document.getElementById("globalGroupByBrandBtn");
 const globalOnlyWithInciBtn = document.getElementById("globalOnlyWithInciBtn");
 const globalOnlyVeganBtn = document.getElementById("globalOnlyVeganBtn");
 const globalCountEl = document.getElementById("globalCount");
+const globalActiveFiltersEl = document.getElementById("globalActiveFilters");
+const globalActiveFilterTagsEl = document.getElementById("globalActiveFilterTags");
+const globalResetFiltersBtn = document.getElementById("globalResetFiltersBtn");
 const globalResultsContainerEl = document.getElementById("globalResultsContainer");
 const globalLoadMoreWrapEl = document.getElementById("globalLoadMoreWrap");
 const globalLoadMoreBtn = document.getElementById("globalLoadMoreBtn");
@@ -429,10 +436,12 @@ function renderProductCard(p) {
     })
     .join("");
 
+  const isApiPhoto = p.source === "openbeautyfacts";
+
   return `
     <article class="product-card">
-      <div class="card-media">
-        <img src="${escapeHtml(p.image)}" alt="${escapeHtml(p.brand + " " + p.name)}" loading="lazy" />
+      <div class="card-media${isApiPhoto ? " is-api-photo" : ""}">
+        <img src="${escapeHtml(p.image)}" alt="${escapeHtml(p.brand + " " + p.name)}" loading="lazy" onerror="this.onerror=null;this.src='assets/images/foundation.jpg';" />
         <div class="card-overlay-top">
           <div class="card-score-badge">
             ${renderMiniRing(analysis.healthScore, analysis.healthStatus)}
@@ -709,7 +718,7 @@ function openCompareModal() {
             return `
               <div class="compare-col">
                 <div class="compare-head">
-                  <img src="${escapeHtml(p.image)}" alt="${escapeHtml(p.name)}" />
+                  <img src="${escapeHtml(p.image)}" alt="${escapeHtml(p.name)}" onerror="this.onerror=null;this.src='assets/images/foundation.jpg';" />
                   <div>
                     <span>${escapeHtml(p.brand)} · ${escapeHtml(p.categoryLabel)}</span>
                     <h3>${escapeHtml(p.name)}</h3>
@@ -1108,7 +1117,7 @@ function renderScannerReport() {
     scannerResultEl.innerHTML = `
       ${sourceHeader}
       <div class="report-hero report-hero-with-photo">
-        <img class="report-thumb" src="${escapeHtml(prod.image)}" alt="${escapeHtml(prod.name)}" />
+        <img class="report-thumb" src="${escapeHtml(prod.image)}" alt="${escapeHtml(prod.name)}" onerror="this.onerror=null;this.src='assets/images/foundation.jpg';" />
         <div></div>
         <div class="report-verdict">
           <span class="tag tag-check">İçerik Metni Eksik</span>
@@ -1270,7 +1279,59 @@ function renderGlobalCategoriesStrip() {
   ).join("");
 }
 
+function renderSkeletonGrid(count = 6) {
+  const cardHtml = `
+    <div class="skeleton-card" aria-hidden="true">
+      <div class="skeleton-media"></div>
+      <div class="skeleton-body">
+        <div class="skeleton-line is-short"></div>
+        <div class="skeleton-line is-title"></div>
+        <div class="skeleton-line"></div>
+        <div class="skeleton-line is-med"></div>
+      </div>
+    </div>
+  `;
+  return `<div class="skeleton-grid" aria-busy="true" aria-label="Ürünler yükleniyor">${cardHtml.repeat(count)}</div>`;
+}
+
+function renderGlobalActiveFilters() {
+  if (!globalActiveFiltersEl || !globalActiveFilterTagsEl) return;
+
+  const activeTags = [];
+
+  if (state.globalBrand) {
+    const brandObj = GLOBAL_BRANDS.find((b) => b.query === state.globalBrand);
+    activeTags.push(`Marka: ${brandObj ? brandObj.name : state.globalBrand}`);
+  }
+  if (state.globalQuery) {
+    activeTags.push(`Arama: "${state.globalQuery}"`);
+  }
+  if (state.globalCategoryId && state.globalCategoryId !== "all") {
+    const catObj = GLOBAL_CATEGORIES.find((c) => c.id === state.globalCategoryId);
+    activeTags.push(`Kategori: ${catObj ? catObj.label : state.globalCategoryId}`);
+  }
+  if (state.globalOnlyWithInci) {
+    activeTags.push("Sadece İçeriği Olanlar");
+  }
+  if (state.globalOnlyVegan) {
+    activeTags.push("Sadece Vegan");
+  }
+
+  if (activeTags.length === 0) {
+    globalActiveFiltersEl.hidden = true;
+    globalActiveFilterTagsEl.innerHTML = "";
+    return;
+  }
+
+  globalActiveFiltersEl.hidden = false;
+  globalActiveFilterTagsEl.innerHTML = activeTags
+    .map((label) => `<span class="active-filter-chip tag tag-neutral">${escapeHtml(label)}</span>`)
+    .join("");
+}
+
 function renderGlobalResults() {
+  renderGlobalActiveFilters();
+
   let visible = state.globalItems;
 
   if (state.globalOnlyWithInci) {
@@ -1291,13 +1352,7 @@ function renderGlobalResults() {
   globalLoadMoreWrapEl.hidden = !state.globalHasMore;
 
   if (state.globalLoading && state.globalItems.length === 0) {
-    globalResultsContainerEl.innerHTML = `
-      <div class="empty-state" style="background:var(--bg-surface);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);">
-        <div class="spinner" aria-hidden="true"></div>
-        <h3>Dünya Kataloğu Yükleniyor...</h3>
-        <p>Open Beauty Facts küresel veritabanından makyaj ve cilt bakım ürünleri çekiliyor.</p>
-      </div>
-    `;
+    globalResultsContainerEl.innerHTML = renderSkeletonGrid(6);
     return;
   }
 
@@ -1451,8 +1506,58 @@ globalCategoriesStripEl.addEventListener("click", (e) => {
 globalSearchFormEl.addEventListener("submit", (e) => {
   e.preventDefault();
   state.globalQuery = globalSearchInputEl.value.trim();
+  if (heroQuickSearchInputEl) heroQuickSearchInputEl.value = state.globalQuery;
   fetchGlobalCatalog({ append: false });
 });
+
+heroQuickSearchFormEl?.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const q = heroQuickSearchInputEl.value.trim();
+  state.globalQuery = q;
+  globalSearchInputEl.value = q;
+  switchView("global");
+  document.getElementById("view-global")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  fetchGlobalCatalog({ append: false });
+});
+
+globalResetFiltersBtn?.addEventListener("click", () => {
+  const needsRefetch = Boolean(
+    state.globalBrand || state.globalQuery || state.globalCategoryId !== "all"
+  );
+
+  state.globalBrand = "";
+  state.globalQuery = "";
+  state.globalCategoryId = "all";
+  state.globalOnlyWithInci = false;
+  state.globalOnlyVegan = false;
+
+  globalSearchInputEl.value = "";
+  if (heroQuickSearchInputEl) heroQuickSearchInputEl.value = "";
+  globalOnlyWithInciBtn.setAttribute("aria-pressed", "false");
+  globalOnlyVeganBtn.setAttribute("aria-pressed", "false");
+
+  renderGlobalBrandsStrip();
+  renderGlobalCategoriesStrip();
+
+  if (needsRefetch) {
+    fetchGlobalCatalog({ append: false });
+  } else {
+    renderGlobalResults();
+  }
+});
+
+if (scrollTopBtn) {
+  const updateScrollTopBtn = () => {
+    const visible = window.scrollY > 500;
+    scrollTopBtn.hidden = !visible;
+    scrollTopBtn.classList.toggle("is-visible", visible);
+  };
+  window.addEventListener("scroll", updateScrollTopBtn, { passive: true });
+  scrollTopBtn.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+  updateScrollTopBtn();
+}
 
 globalGroupByBrandBtn.addEventListener("click", () => {
   state.globalGroupByBrand = !state.globalGroupByBrand;
