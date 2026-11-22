@@ -196,7 +196,7 @@ function renderSafetyPanel(safety) {
     return `
       <div class="safety-panel is-clear">
         <strong>✓ Ek uyarı yok</strong>
-        <span>Hamilelik, AB yasaklı/kısıtlı madde, koku alerjeni, helal ve çevre kontrollerinden geçti.</span>
+        <span>Hamilelik, AB yasaklı/kısıtlı madde, koku alerjeni ve çevre kontrollerinden geçti.</span>
       </div>`;
   }
   return `

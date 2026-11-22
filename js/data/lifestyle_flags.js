@@ -1,7 +1,7 @@
-// Yaşam tarzı bayrakları: hamilelik, helal ve kaynağı belirsiz (bitkisel/hayvansal) içerikler.
+// Yaşam tarzı bayrakları: hamilelik ve kaynağı belirsiz (bitkisel/hayvansal) içerikler.
 // Anahtarlar küçük harfli standart INCI adlarıdır. `aliases` alternatif adlar, `pattern` ise
 // aile eşleşmesi için büyük/küçük harf duyarsız JS regex kaynağıdır (new RegExp(p, "i")).
-// Notlar bilgilendirme amaçlıdır; tıbbi veya dini hüküm yerine geçmez.
+// Notlar bilgilendirme amaçlıdır; tıbbi tavsiye yerine geçmez.
 
 export const PREGNANCY_FLAGS = {
   // --- Retinoidler ---
@@ -96,59 +96,6 @@ export const PREGNANCY_FLAGS = {
   "petroselinum sativum seed oil": { lvl: "caution", note: "Maydanoz tohumu yağı; apiol içerir, hamilelikte önerilmez.", aliases: ["parsley seed oil"] },
   "foeniculum vulgare oil": { lvl: "caution", note: "Rezene yağı; östrojenik bileşenler nedeniyle hamilelikte dikkat.", aliases: ["fennel oil"] },
   "ocimum basilicum oil": { lvl: "caution", note: "Fesleğen yağı; estragol içerir, hamilelikte dikkat.", aliases: ["basil oil"] },
-};
-
-export const HALAL_FLAGS = {
-  // --- Alkol ---
-  "alcohol": { lvl: "suspect", note: "Etanol; kozmetikte haricen kullanımı fıkhen tartışmalı, birçok görüş caiz sayar.", aliases: ["ethanol", "ethyl alcohol"] },
-  "alcohol denat.": { lvl: "suspect", note: "Denatüre etanol; kozmetikte kullanımı fıkhen tartışmalıdır.", aliases: ["alcohol denat", "denatured alcohol"], pattern: "^(sd alcohol|alcohol denat)" },
-  "sd alcohol 40": { lvl: "suspect", note: "Denatüre etanol; kozmetikte kullanımı fıkhen tartışmalıdır.", aliases: ["sd alcohol 40-b", "sd alcohol"] },
-  "wine extract": { lvl: "suspect", note: "Şarap kaynaklı; içeriği ve alkol durumu nedeniyle şüpheli.", aliases: ["vinum", "red wine extract"], pattern: "\\bwine\\b|^vinum" },
-  "beer": { lvl: "suspect", note: "Bira kaynaklı; alkollü içecek türevi olduğu için şüpheli.", aliases: ["cerevisia"] },
-
-  // --- Domuz kaynaklı (açık) ---
-  "lard": { lvl: "haram", note: "Domuz yağı; domuz kaynaklı içerikler helal kabul edilmez.", aliases: ["adeps suillus"], pattern: "^lard\\b|\\bporcine\\b|sus scrofa|adeps suillus|\\bpig\\b" },
-
-  // --- Hayvansal proteinler ---
-  "gelatin": { lvl: "suspect", note: "Domuz veya sığırdan elde edilebilir; kaynağı belirtilmedikçe şüpheli.", aliases: ["gelatine"], pattern: "gelatin" },
-  "collagen": { lvl: "suspect", note: "Sığır, domuz veya balık kaynaklı olabilir; kaynağı belirtilmedikçe şüpheli.", aliases: ["soluble collagen", "atelocollagen"], pattern: "collagen" },
-  "hydrolyzed collagen": { lvl: "suspect", note: "Sığır, domuz veya balık kaynaklı olabilir; kaynağı belirtilmedikçe şüpheli." },
-  "elastin": { lvl: "suspect", note: "Genellikle sığır/domuz dokusundan elde edilir; kaynağı belirsizse şüpheli.", pattern: "elastin" },
-  "hydrolyzed elastin": { lvl: "suspect", note: "Hayvansal doku kaynaklı; kaynağı belirsizse şüpheli." },
-  "keratin": { lvl: "suspect", note: "Yün, tüy, boynuz gibi hayvansal kaynaklı; kesim/kaynak bilgisi belirsiz.", pattern: "keratin" },
-  "hydrolyzed keratin": { lvl: "suspect", note: "Hayvansal kaynaklı keratin; kaynak bilgisi belirsiz." },
-  "hydrolyzed animal protein": { lvl: "suspect", note: "Hayvan türü belirtilmemiş protein; şüpheli." },
-  "serum albumin": { lvl: "suspect", note: "Hayvan kanından elde edilir; kaynak ve kesim bilgisi belirsiz.", aliases: ["bovine serum albumin"] },
-  "cysteine": { lvl: "suspect", note: "Tüy veya kıldan da elde edilebilir; kaynağı belirsizse şüpheli.", aliases: ["l-cysteine"] },
-  "chondroitin sulfate": { lvl: "suspect", note: "Hayvan kıkırdağından elde edilir (sığır, domuz, köpekbalığı); şüpheli.", aliases: ["sodium chondroitin sulfate"] },
-
-  // --- Plasenta / amniyon ---
-  "placental protein": { lvl: "suspect", note: "Hayvan (bazen insan) plasentası kaynaklı; birçok görüşte caiz değil.", aliases: ["placenta extract"], pattern: "placent" },
-  "amniotic fluid": { lvl: "suspect", note: "Hayvan amniyon sıvısı kaynaklı; şüpheli.", aliases: ["amniotic liquid"] },
-
-  // --- İç yağı (tallow) türevleri ---
-  "tallow": { lvl: "suspect", note: "Sığır/koyun iç yağı; usulüne uygun kesim bilgisi olmadan şüpheli.", aliases: ["adeps bovis"], pattern: "tallow" },
-  "sodium tallowate": { lvl: "suspect", note: "İç yağından sabun; hayvan kesim bilgisi belirsiz, şüpheli." },
-  "potassium tallowate": { lvl: "suspect", note: "İç yağından sabun; hayvan kesim bilgisi belirsiz, şüpheli." },
-  "tallow acid": { lvl: "suspect", note: "İç yağı yağ asitleri; kaynak bilgisi belirsiz, şüpheli." },
-  "hydrogenated tallow glycerides": { lvl: "suspect", note: "İç yağı türevi; kaynak bilgisi belirsiz, şüpheli." },
-
-  // --- Böcek / diğer hayvansal ---
-  "carmine": { lvl: "suspect", note: "Koşnil böceğinden elde edilen kırmızı pigment; helalliği konusunda görüş ayrılığı var.", aliases: ["ci 75470", "cochineal", "carminic acid"] },
-  "snail secretion filtrate": { lvl: "suspect", note: "Salyangoz salgısı; mezhepler arasında görüş ayrılığı var.", aliases: ["snail mucin"], pattern: "snail|helix aspersa|achatina" },
-  "mink oil": { lvl: "suspect", note: "Vizon yağı; eti yenmeyen hayvan kaynaklı, şüpheli.", pattern: "mustela|\\bmink\\b" },
-  "emu oil": { lvl: "suspect", note: "Emu kuşu yağı; kesim bilgisi belirsiz, şüpheli.", aliases: ["dromiceius oil"] },
-  "horse oil": { lvl: "suspect", note: "At yağı; mezhepler arası görüş farkı ve kesim bilgisi nedeniyle şüpheli.", aliases: ["horse fat", "equus caballus fat"] },
-  "civet": { lvl: "suspect", note: "Misk kedisi salgısı; hayvansal kaynaklı, şüpheli.", aliases: ["civet absolute"] },
-  "castoreum": { lvl: "suspect", note: "Kunduz salgısı; hayvansal kaynaklı, şüpheli.", aliases: ["castor extract"] },
-
-  // --- Kaynağa bağlı lipitler ---
-  "lanolin": { lvl: "suspect", note: "Koyun yününden elde edilir; çoğu görüş caiz sayar, sertifika önerilir.", aliases: ["adeps lanae", "wool wax"], pattern: "lanolin|adeps lanae" },
-  "stearic acid": { lvl: "suspect", note: "Bitkisel veya hayvansal yağdan elde edilebilir; kaynağa bağlı." },
-  "glyceryl stearate": { lvl: "suspect", note: "Bitkisel veya hayvansal stearik asitten üretilebilir; kaynağa bağlı.", aliases: ["glyceryl stearate se"] },
-  "cholesterol": { lvl: "suspect", note: "Çoğunlukla lanolin veya hayvansal kaynaklı; bitkisel muadili de var." },
-  "squalene": { lvl: "suspect", note: "Köpekbalığı karaciğeri veya zeytinden elde edilebilir; kaynağa bağlı.", aliases: ["shark liver oil"] },
-  "glycerin": { lvl: "suspect", note: "İç yağı veya bitkisel yağdan elde edilebilir; kaynağa bağlı.", aliases: ["glycerol", "glycerine"] },
 };
 
 export const AMBIGUOUS_SOURCE = {

@@ -1,10 +1,10 @@
 /**
  * MakeYUP — Ek Güvenlik Bayrakları
- * Hamilelik, AB alerjen / yasaklı / kısıtlı maddeler, helal uygunluğu,
+ * Hamilelik, AB alerjen / yasaklı / kısıtlı maddeler,
  * kaynağı belirsiz (bitkisel veya hayvansal) maddeler ve çevre etkisi.
  */
 
-import { PREGNANCY_FLAGS, HALAL_FLAGS, AMBIGUOUS_SOURCE } from "./data/lifestyle_flags.js";
+import { PREGNANCY_FLAGS, AMBIGUOUS_SOURCE } from "./data/lifestyle_flags.js";
 import { EU_ALLERGENS, EU_BANNED, EU_RESTRICTED } from "./data/eu_regulatory.js";
 import { ENV_FLAGS } from "./data/environment_flags.js";
 
@@ -36,7 +36,6 @@ function buildIndex(table) {
 
 const INDEX = {
   pregnancy: buildIndex(PREGNANCY_FLAGS),
-  halal: buildIndex(HALAL_FLAGS),
   ambiguous: buildIndex(AMBIGUOUS_SOURCE),
   allergen: buildIndex(EU_ALLERGENS),
   banned: buildIndex(EU_BANNED),
@@ -97,7 +96,6 @@ export function flagTags(flags) {
     });
   }
   if (flags.allergen) tags.push({ cls: "tag-moderate", text: "AB alerjeni" });
-  if (flags.halal) tags.push({ cls: "tag-check", text: flags.halal.lvl === "haram" ? "Helal değil" : "Helal şüpheli" });
   if (flags.env) tags.push({ cls: "tag-neutral", text: ENV_LABEL[flags.env.type] || "Çevre etkisi" });
   return tags;
 }
@@ -119,7 +117,6 @@ export function summarizeFlags(items) {
     { key: "pregCaution", icon: "🤰", title: "Hamilelikte doktora danışın", level: "warning", test: (f) => f.pregnancy && f.pregnancy.lvl !== "avoid" },
     { key: "restricted", icon: "📏", title: "AB'de oran sınırı olan madde", level: "warning", test: (f) => f.restricted },
     { key: "allergen", icon: "🌸", title: "AB etiket zorunlu koku alerjeni", level: "warning", test: (f) => f.allergen },
-    { key: "halal", icon: "☪", title: "Helal açısından şüpheli", level: "info", test: (f) => f.halal },
     { key: "ambiguous", icon: "🔎", title: "Bitkisel de hayvansal da olabilir", level: "info", test: (f) => f.ambiguous },
     { key: "env", icon: "🌍", title: "Çevreye zararlı / kalıcı", level: "info", test: (f) => f.env }
   ];
