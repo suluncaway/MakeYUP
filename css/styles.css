@@ -2288,3 +2288,112 @@ a:focus-visible {
   50% { opacity: 1; transform: translate(-50%, -50%) scale(0.92); }
   100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
 }
+
+/* ============================================================
+   Cilt Tipi Uygunluk Karnesi & Kart Rozetleri
+   ============================================================ */
+.skin-card-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.74rem;
+}
+
+.skin-card-label {
+  color: var(--text-muted);
+  font-weight: 700;
+  margin-right: 0.15rem;
+}
+
+.skin-panel {
+  background: var(--bg-page);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.15rem;
+  margin-bottom: 1.2rem;
+}
+
+.skin-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 0.85rem;
+}
+
+.skin-panel-head strong {
+  font-size: 0.94rem;
+}
+
+.skin-panel-head span {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.skin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.6rem;
+}
+
+.skin-tile {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 0.7rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.skin-tile.is-recommended {
+  border-top: 3px solid var(--safe);
+}
+
+.skin-tile.is-caution {
+  border-top: 3px solid var(--moderate);
+}
+
+.skin-tile.is-avoid {
+  border-top: 3px solid var(--high);
+}
+
+.skin-tile-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.3rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.skin-status-pill {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+  border-radius: var(--radius-pill);
+}
+
+.skin-tile.is-recommended .skin-status-pill {
+  background: var(--safe-bg);
+  color: var(--safe);
+}
+
+.skin-tile.is-caution .skin-status-pill {
+  background: var(--moderate-bg);
+  color: var(--moderate);
+}
+
+.skin-tile.is-avoid .skin-status-pill {
+  background: var(--high-bg);
+  color: var(--high);
+}
+
+.skin-tile p {
+  margin: 0;
+  font-size: 0.74rem;
+  line-height: 1.4;
+  color: var(--text-secondary);
+}

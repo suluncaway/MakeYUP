@@ -153,6 +153,40 @@ function renderIngredientCard(item) {
   `;
 }
 
+function renderSkinCompatibilityPanel(skinProfile) {
+  if (!skinProfile || !skinProfile.hasData) return "";
+
+  const statusText = {
+    recommended: "✓ Uygun",
+    caution: "⚠ Dikkatli",
+    avoid: "✕ Önerilmez"
+  };
+
+  return `
+    <div class="skin-panel">
+      <div class="skin-panel-head">
+        <strong>💆 Cilt Tipi Uygunluk Karnesi</strong>
+        <span>${escapeHtml(skinProfile.summaryText)}</span>
+      </div>
+      <div class="skin-grid">
+        ${skinProfile.types
+          .map(
+            (t) => `
+            <div class="skin-tile is-${escapeHtml(t.level)}">
+              <div class="skin-tile-top">
+                <span>${t.icon} ${escapeHtml(t.label)}</span>
+                <span class="skin-status-pill">${statusText[t.level] || ""}</span>
+              </div>
+              <p>${escapeHtml(t.reason)}</p>
+            </div>
+          `
+          )
+          .join("")}
+      </div>
+    </div>
+  `;
+}
+
 function renderAnalysisReport(analysis, options = {}) {
   const { product = null, filter = "all", containerPrefix = "report" } = options;
 
@@ -204,6 +238,8 @@ function renderAnalysisReport(analysis, options = {}) {
         <p>${escapeHtml(analysis.veganExplanation)}</p>
       </div>
     </div>
+
+    ${renderSkinCompatibilityPanel(analysis.skinProfile)}
 
     ${renderRiskBar(analysis)}
 
@@ -473,6 +509,19 @@ function renderProductCard(p) {
         </div>
 
         ${renderRiskBar(analysis)}
+
+        ${
+          analysis.skinProfile?.hasData && analysis.skinProfile.recommendedLabels.length > 0
+            ? `<div class="skin-card-strip">
+                <span class="skin-card-label">Cilt Tipi:</span>
+                ${analysis.skinProfile.types
+                  .filter((t) => t.level === "recommended")
+                  .slice(0, 3)
+                  .map((t) => `<span class="tag tag-neutral">${t.icon} ${escapeHtml(t.label)}</span>`)
+                  .join("")}
+              </div>`
+            : ""
+        }
 
         <div class="card-highlights">${highlightPills}</div>
 
@@ -748,6 +797,13 @@ function openCompareModal() {
                 <p style="margin:0;font-size:0.84rem;color:var(--text-secondary);">
                   <strong>Vegan Notu:</strong> ${escapeHtml(analysis.veganExplanation)}
                 </p>
+                ${
+                  analysis.skinProfile?.hasData
+                    ? `<p style="margin:0;font-size:0.84rem;color:var(--text-secondary);">
+                        <strong>Cilt Tipi:</strong> ${escapeHtml(analysis.skinProfile.summaryText)}
+                      </p>`
+                    : ""
+                }
                 <div class="card-highlights">
                   ${analysis.highRiskIngredients.length > 0
                     ? analysis.highRiskIngredients.map((i) => `<span class="tag tag-high">⚠ ${escapeHtml(i.nameTr)}</span>`).join("")

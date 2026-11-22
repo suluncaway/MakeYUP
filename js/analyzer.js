@@ -423,6 +423,9 @@ export function analyzeIngredients(input) {
     highlights.push({ type: "positive", text: `Cilt dostu aktifler: ${topHeroes}` });
   }
 
+  // Dinamik Cilt Tipi Uygunluk Analizi
+  const skinProfile = computeSkinCompatibility(items, knownCount);
+
   return {
     healthScore,
     healthStatus,
@@ -442,6 +445,122 @@ export function analyzeIngredients(input) {
       unknown: unknownPct
     },
     highlights,
+    skinProfile,
     items
+  };
+}
+
+/**
+ * İçerik listesine göre 5 temel cilt tipi (Kuru, Yağlı/Akne, Hassas, Karma, Normal)
+ * için dinamik uygunluk seviyesi ve Türkçe gerekçe hesaplar.
+ */
+function computeSkinCompatibility(items, knownCount) {
+  if (knownCount === 0) {
+    return {
+      hasData: false,
+      recommendedLabels: [],
+      summaryText: "İçerik bilgisi olmadığı için cilt tipi uygunluğu hesaplanamadı.",
+      types: []
+    };
+  }
+
+  const allText = items
+    .map((i) => `${i.inci || ""} ${i.rawName || ""} ${(i.tags || []).join(" ")}`)
+    .join(" | ")
+    .toLowerCase();
+
+  const hasHydrators = /(hyaluron|glycerin|squalane|ceramide|shea|butyrospermum|urea|panthenol|jojoba|simmondsia|argan|almond|rosehip|rosa canina)/.test(allText);
+  const hasSoothers = /(centella|panthenol|allantoin|bisabolol|aloe|ceramide|niacinamide|zinc oxide)/.test(allText);
+  const hasOilControl = /(niacinamide|salicylic|silica|kaolin|azelaic|zinc oxide)/.test(allText);
+
+  const hasFragrance = /(parfum|fragrance|limonene|linalool|citronellol|geraniol|coumarin|eugenol|hexyl cinnamal|koku alerjeni)/.test(allText);
+  const hasDryingAlcohol = /(alcohol denat|denatured alcohol|sd alcohol)/.test(allText);
+  const hasHarshSulfate = /(sodium lauryl sulfate|\bsls\b)/.test(allText);
+  const hasComedogenic = /(cocos nucifera|coconut oil|mineral oil|paraffinum liquidum|petrolatum|lanolin|isopropyl myristate)/.test(allText);
+  const hasHeavySilicone = /(dimethicone|cyclopentasiloxane|silikon)/.test(allText);
+  const hasStrongActives = /(retinol|retinyl palmitate|glycolic acid)/.test(allText);
+  const hasHighAllergenPreservative = /(dmdm hydantoin|methylisothiazolinone|formaldehit)/.test(allText);
+  const hasCarmine = /(carmine|ci 75470)/.test(allText);
+
+  // 1. Kuru Cilt
+  let dryLevel = "recommended";
+  let dryReason = hasHydrators
+    ? "Nem tutucu ve besleyici bileşenlerle kuru cildi destekler."
+    : "Kurutucu sert bileşen içermediği için kuru ciltte kullanılabilir.";
+  if (hasHarshSulfate || hasDryingAlcohol) {
+    dryLevel = hasHarshSulfate && hasDryingAlcohol ? "avoid" : "caution";
+    dryReason = hasHarshSulfate
+      ? "Sert sülfat (SLS) içerdiği için kuru cildi daha fazla kurutabilir."
+      : "Denatüre alkol içerdiği için kuru ciltlerde gerginlik yapabilir.";
+  }
+
+  // 2. Yağlı & Akneye Meyilli Cilt
+  let oilyLevel = "recommended";
+  let oilyReason = hasOilControl
+    ? "Sebum dengeleyici / gözenek dostu bileşenlerle yağlı ve akneye meyilli ciltlere uygundur."
+    : "Ağır gözenek tıkayıcı yağlar içermediği için yağlı ciltte rahattır.";
+  if (hasComedogenic) {
+    oilyLevel = "avoid";
+    oilyReason = "Hindistan cevizi yağı, mineral yağ veya lanolin gibi komedojenik (gözenek tıkayıcı) maddeler içerir.";
+  } else if (hasHeavySilicone) {
+    oilyLevel = "caution";
+    oilyReason = "Silikon türevi içerir; akneye meyilli ciltlerde akşam çift aşamalı temizlik önerilir.";
+  }
+
+  // 3. Hassas Cilt
+  let sensitiveLevel = "recommended";
+  let sensitiveReason = hasSoothers
+    ? "Parfümsüz ve yatıştırıcı (Pantenol/Seramid/Centella vb.) yapısıyla hassas cilt dostudur."
+    : "Yaygın koku alerjeni ve sert tahriş ediciler içermediği için hassas ciltlere uygundur.";
+  if (hasHighAllergenPreservative || hasHarshSulfate || (hasFragrance && hasDryingAlcohol)) {
+    sensitiveLevel = "avoid";
+    sensitiveReason = "Yüksek alerjen koruyucu, sert sülfat veya parfüm+alkol kombinasyonu hassas ciltte tahriş yapabilir.";
+  } else if (hasFragrance || hasStrongActives || hasDryingAlcohol || hasCarmine) {
+    sensitiveLevel = "caution";
+    sensitiveReason = hasFragrance
+      ? "Parfüm veya koku alerjeni içerdiğinden çok hassas/egzamalı ciltlerde dikkatli kullanılmalıdır."
+      : hasStrongActives
+      ? "Güçlü aktif (Retinol/AHA) içerir; hassas ciltlerde düşük sıklıkla başlanmalıdır."
+      : "Hassas ciltlerde reaksiyon potansiyeli olan bileşenler içerir.";
+  }
+
+  // 4. Karma Cilt
+  let comboLevel = "recommended";
+  let comboReason = "Dengeli formülüyle T-bölgesi yağlı, yanakları normal/kuru karma ciltlere uygundur.";
+  if (hasComedogenic && hasHarshSulfate) {
+    comboLevel = "avoid";
+    comboReason = "Hem sert temizleyici hem gözenek tıkayıcı içerik barındırdığı için karma cilt dengesini bozabilir.";
+  } else if (hasComedogenic) {
+    comboLevel = "caution";
+    comboReason = "T-bölgesinde parlama veya gözenek tıkanması yapabilecek ağır yağlar içerir.";
+  }
+
+  // 5. Normal Cilt
+  let normalLevel = "recommended";
+  let normalReason = "Günlük kullanımda normal cilt bariyeriyle uyumlu bir formüle sahiptir.";
+  if (hasHighAllergenPreservative) {
+    normalLevel = "caution";
+    normalReason = "Yüksek alerjen potansiyelli koruyucu içerdiği için daha temiz alternatifler tercih edilebilir.";
+  }
+
+  const types = [
+    { id: "kuru", icon: "💧", label: "Kuru", level: dryLevel, reason: dryReason },
+    { id: "yagli", icon: "✨", label: "Yağlı / Akne", level: oilyLevel, reason: oilyReason },
+    { id: "hassas", icon: "🌸", label: "Hassas", level: sensitiveLevel, reason: sensitiveReason },
+    { id: "karma", icon: "⚖️", label: "Karma", level: comboLevel, reason: comboReason },
+    { id: "normal", icon: "🌿", label: "Normal", level: normalLevel, reason: normalReason }
+  ];
+
+  const recommendedLabels = types.filter((t) => t.level === "recommended").map((t) => t.label);
+  const summaryText =
+    recommendedLabels.length > 0
+      ? `En uygun cilt tipleri: ${recommendedLabels.join(", ")}`
+      : "Tüm cilt tiplerinde içeriğindeki aktif/alerjenler nedeniyle dikkatli kullanım önerilir.";
+
+  return {
+    hasData: true,
+    recommendedLabels,
+    summaryText,
+    types
   };
 }
