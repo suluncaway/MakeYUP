@@ -5,6 +5,7 @@
  */
 
 import { INGREDIENTS_DB } from "./data/ingredients.js";
+import { getIngredientFlags, summarizeFlags } from "./flags.js";
 
 // 2.748 bileşenlik AB CosIng (CAS / EC / resmi işlev / komedojenik) sözlüğü
 let cosingMap = {};
@@ -477,13 +478,29 @@ export function analyzeIngredients(input) {
   const safeHeroIngredients = [];
 
   for (const rawName of rawList) {
-    const match = findIngredient(rawName);
+    const found = findIngredient(rawName);
+    const flags = getIngredientFlags(rawName, found);
+    let match = found;
+    if (found && flags) {
+      match = { ...found };
+      // Kaynağı belirsiz maddeler (gliserin, stearik asit vb.) kesin vegan sayılmaz
+      if (flags.ambiguous && match.vegan === true) {
+        match.vegan = "conditional";
+        match.animalSource = match.animalSource || flags.ambiguous.note;
+      }
+      // AB'de yasaklı maddeler her zaman yüksek riskli sayılır
+      if (flags.banned && match.risk !== "high") {
+        match.risk = "high";
+        match.riskScore = Math.max(match.riskScore || 0, 8);
+      }
+    }
     if (match) {
       items.push({
         rawName,
         known: true,
         ...match,
-        origin: inferOriginForKnown(match)
+        origin: inferOriginForKnown(match),
+        flags
       });
 
       counts[match.risk] += 1;
@@ -513,7 +530,8 @@ export function analyzeIngredients(input) {
         category: "Veritabanında Yok",
         summaryTr:
           "Bu bileşen henüz yerel veritabanımızda tanımlı değil. Kesin bilgi için ürün etiketini veya üretici beyanını kontrol edin.",
-        tags: ["İncelenmedi"]
+        tags: ["İncelenmedi"],
+        flags
       });
       counts.unknown += 1;
       counts.total += 1;
@@ -631,7 +649,13 @@ export function analyzeIngredients(input) {
   // Dinamik Cilt Tipi Uygunluk Analizi
   const skinProfile = computeSkinCompatibility(items, knownCount);
 
+  const safety = summarizeFlags(items);
+  if (safety.groups.some((g) => g.key === "banned")) {
+    highlights.unshift({ type: "danger", text: "AB'de yasaklı madde içerir" });
+  }
+
   return {
+    safety,
     healthScore,
     healthStatus,
     healthLabel,

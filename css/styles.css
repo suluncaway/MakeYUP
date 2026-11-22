@@ -1257,6 +1257,25 @@ a:focus-visible {
   border-color: color-mix(in srgb, var(--check) 25%, transparent);
 }
 
+/* Ek güvenlik uyarıları paneli */
+.safety-panel {
+  padding: 0.9rem 1.1rem;
+  border-radius: var(--radius-md);
+  margin-bottom: 1.2rem;
+  border: 1px solid var(--border, color-mix(in srgb, var(--text-secondary) 20%, transparent));
+  background: var(--bg-subtle);
+  font-size: 0.86rem;
+}
+.safety-panel > strong { display: block; margin-bottom: 0.45rem; font-size: 0.94rem; }
+.safety-panel.is-clear { background: var(--safe-bg); color: var(--safe); border-color: transparent; }
+.safety-panel.is-clear > strong { display: inline; margin-right: 0.4rem; }
+.safety-panel ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.4rem; }
+.safety-panel li { display: flex; gap: 0.55rem; align-items: flex-start; line-height: 1.4; overflow-wrap: anywhere; }
+.safety-panel li.is-danger b { color: var(--high); }
+.safety-panel li.is-warning b { color: var(--moderate); }
+.safety-icon { flex: none; width: 1.3rem; text-align: center; }
+.product-facts { margin-top: 0.35rem !important; font-size: 0.8rem !important; }
+
 .vegan-callout-icon {
   font-size: 1.4rem;
   line-height: 1;

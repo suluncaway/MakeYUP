@@ -6,6 +6,7 @@ import { BRANDS_DATA } from "./data/brands.js";
 import { PRODUCTS_DATA } from "./data/products.js";
 import { INGREDIENTS_DB } from "./data/ingredients.js";
 import { analyzeIngredients, loadCosingIndex, getCosingMeta } from "./analyzer.js";
+import { flagTags } from "./flags.js";
 import {
   SAMPLE_BARCODES,
   BarcodeScannerController,
@@ -178,6 +179,7 @@ function renderIngredientCard(item) {
         <div class="inci-badges">
           <span class="tag ${rInfo.cls}">${rInfo.text}</span>
           ${veganBadge}
+          ${flagTags(item.flags).map((t) => `<span class="tag ${t.cls}">${escapeHtml(t.text)}</span>`).join("")}
           ${originBadge}
         </div>
       </div>
@@ -186,6 +188,45 @@ function renderIngredientCard(item) {
       ${sciLinks}
     </article>
   `;
+}
+
+function renderSafetyPanel(safety) {
+  if (!safety) return "";
+  if (safety.groups.length === 0) {
+    return `
+      <div class="safety-panel is-clear">
+        <strong>✓ Ek uyarı yok</strong>
+        <span>Hamilelik, AB yasaklı/kısıtlı madde, koku alerjeni, helal ve çevre kontrollerinden geçti.</span>
+      </div>`;
+  }
+  return `
+    <div class="safety-panel">
+      <strong>Dikkat Edilmesi Gerekenler</strong>
+      <ul>
+        ${safety.groups
+          .map(
+            (g) => `
+          <li class="is-${g.level}">
+            <span class="safety-icon" aria-hidden="true">${g.icon}</span>
+            <span><b>${escapeHtml(g.title)}</b> — ${escapeHtml(g.names.join(", "))}</span>
+          </li>`
+          )
+          .join("")}
+      </ul>
+    </div>`;
+}
+
+function renderProductFacts(product) {
+  if (!product) return "";
+  const facts = [];
+  if (product.spf) facts.push(`☀ SPF ${product.spf}`);
+  if (product.pao) facts.push(`⏳ Açtıktan sonra ${product.pao.replace("M", " ay")}`);
+  if (product.shades) facts.push(`🎨 ${product.shades} ton`);
+  if (product.priceTier) facts.push(`💰 ${product.priceTier}`);
+  if (Array.isArray(product.certifications) && product.certifications.length) {
+    facts.push(`🏅 ${product.certifications.join(", ")}`);
+  }
+  return facts.length ? `<p class="product-facts">${facts.map(escapeHtml).join(" · ")}</p>` : "";
 }
 
 function renderSkinCompatibilityPanel(skinProfile) {
@@ -263,6 +304,7 @@ function renderAnalysisReport(analysis, options = {}) {
         ${product && product.crueltyFree ? `<span class="tag tag-neutral" style="margin-left:0.35rem;">🐰 Cruelty-Free</span>` : ""}
         <h3>${product ? escapeHtml(product.brand + " — " + product.name) : "İçerik Analiz Özeti"}</h3>
         <p>${escapeHtml(product ? product.description : analysis.healthSummary)}</p>
+        ${renderProductFacts(product)}
       </div>
     </div>
 
@@ -273,6 +315,8 @@ function renderAnalysisReport(analysis, options = {}) {
         <p>${escapeHtml(analysis.veganExplanation)}</p>
       </div>
     </div>
+
+    ${renderSafetyPanel(analysis.safety)}
 
     ${renderSkinCompatibilityPanel(analysis.skinProfile)}
 
