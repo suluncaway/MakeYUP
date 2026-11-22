@@ -283,17 +283,17 @@ export const PRODUCTS_DATA = [
   // MAYBELLINE NEW YORK
   // ========================
   {
-    id: "maybelline-sky-mascara",
+    id: "maybelline-sky-high-mascara",
     brandId: "maybelline",
     brand: "Maybelline New York",
-    name: "Lash Lift Uzatıcı Maskara",
+    name: "Lash Sensational Sky High Maskara",
     category: "goz",
-    categoryLabel: "Göz · Maskara",
+    categoryLabel: "Göz · Uzatıcı Maskara",
     image: "assets/images/mascara.jpg",
     description:
-      "Uzun süre kalıcı uzatıcı maskara. Balmumu (Cera Alba) içerdiği için vegan değildir; kurutucu alkol ve fenoksietanol nedeniyle çok hassas gözlerde dikkat gerektirir.",
+      "Bambu özü ve esnek fırçasıyla yoğun uzunluk veren ikonik maskara. Balmumu (Cera Alba) içerdiği için vegan değildir; kurutucu alkol nedeniyle çok hassas gözlerde dikkat gerektirir.",
     crueltyFree: false,
-    skinTypes: ["Normal"],
+    skinTypes: ["Normal", "Karma"],
     ingredients: [
       "Aqua",
       "Iron Oxides",
@@ -303,6 +303,106 @@ export const PRODUCTS_DATA = [
       "Dimethicone",
       "Phenoxyethanol",
       "Panthenol"
+    ]
+  },
+  {
+    id: "maybelline-lash-sensational-mascara",
+    brandId: "maybelline",
+    brand: "Maybelline New York",
+    name: "Lash Sensational Yelpaze Etkili Maskara",
+    category: "goz",
+    categoryLabel: "Göz · Hacim Maskarası",
+    image: "assets/images/mascara.jpg",
+    description:
+      "Kuşburnu yağı destekli, kirpikleri tek tek ayıran yelpaze etkili klasik maskara. Doğal Balmumu (Cera Alba) içerdiği için vegan değildir.",
+    crueltyFree: false,
+    skinTypes: ["Normal"],
+    ingredients: [
+      "Aqua",
+      "Cera Alba",
+      "Copernicia Cerifera Cera",
+      "Iron Oxides",
+      "Rosa Canina Fruit Oil",
+      "Glycerin",
+      "Dimethicone",
+      "Phenoxyethanol",
+      "Tocopherol"
+    ]
+  },
+  {
+    id: "maybelline-instant-anti-age-eraser",
+    brandId: "maybelline",
+    brand: "Maybelline New York",
+    name: "Instant Anti-Age Eraser Kapatıcı",
+    category: "yuz",
+    categoryLabel: "Yüz · Göz Altı & Yüz Kapatıcı",
+    image: "assets/images/foundation.jpg",
+    description:
+      "Sünger aplikatörlü, yüksek kapatıcılıklı popüler yüz ve göz altı kapatıcısı. Silikon ve fenoksietanol içerir; vegan formüle yakındır ancak gliserin kaynağı kontrol edilmelidir.",
+    crueltyFree: false,
+    skinTypes: ["Normal", "Kuru", "Karma"],
+    ingredients: [
+      "Aqua",
+      "Cyclopentasiloxane",
+      "Dimethicone",
+      "Glycerin",
+      "Titanium Dioxide",
+      "Iron Oxides",
+      "Silica",
+      "Sodium Chloride",
+      "Tocopherol",
+      "Phenoxyethanol",
+      "Caprylyl Glycol"
+    ]
+  },
+  {
+    id: "maybelline-fit-me-concealer",
+    brandId: "maybelline",
+    brand: "Maybelline New York",
+    name: "Fit Me! Likit Yüz Kapatıcısı",
+    category: "yuz",
+    categoryLabel: "Yüz · Kapatıcı",
+    image: "assets/images/foundation.jpg",
+    description:
+      "Yağsız yapısıyla doğal ve mat bitiş sunan günlük yüz kapatıcısı. Akneye meyilli ciltlerde akşam iyi temizlenmesi önerilir.",
+    crueltyFree: false,
+    skinTypes: ["Karma", "Yağlı", "Normal"],
+    ingredients: [
+      "Aqua",
+      "Cyclopentasiloxane",
+      "Dimethicone",
+      "Glycerin",
+      "Titanium Dioxide",
+      "Iron Oxides",
+      "Silica",
+      "Tocopherol",
+      "Phenoxyethanol",
+      "Disodium EDTA"
+    ]
+  },
+  {
+    id: "maybelline-fit-me-foundation",
+    brandId: "maybelline",
+    brand: "Maybelline New York",
+    name: "Fit Me! Matte + Poreless Fondöten",
+    category: "yuz",
+    categoryLabel: "Yüz · Mat Fondöten",
+    image: "assets/images/foundation.jpg",
+    description:
+      "Gözenek görünümünü yumuşatan kil ve silika destekli mat fondöten. Yağlı ve karma ciltlerde parlamayı kontrol etmeye yardımcı olur.",
+    crueltyFree: false,
+    skinTypes: ["Yağlı", "Karma"],
+    ingredients: [
+      "Aqua",
+      "Cyclopentasiloxane",
+      "Dimethicone",
+      "Glycerin",
+      "Kaolin",
+      "Silica",
+      "Titanium Dioxide",
+      "Iron Oxides",
+      "Tocopherol",
+      "Phenoxyethanol"
     ]
   },
   {
@@ -489,6 +589,160 @@ export const PRODUCTS_DATA = [
       "Carmine",
       "Tocopherol",
       "Phenoxyethanol"
+    ]
+  },
+
+  // ========================
+  // SKIN SENSUAL
+  // ========================
+  {
+    id: "skin-sensual-niacinamide-serum",
+    brandId: "skin-sensual",
+    brand: "Skin Sensual",
+    name: "Niacinamide %10 + Zinc Gözenek & Leke Serumu",
+    category: "yuz",
+    categoryLabel: "Cilt Bakımı · Serum",
+    image: "assets/images/foundation.jpg",
+    description:
+      "Niasinamid, Pantenol ve Hyaluronik Asit ile sebum dengesini destekleyen, gözenek görünümünü azaltmaya yardımcı %100 vegan ve parfümsüz bakım serumu.",
+    crueltyFree: true,
+    skinTypes: ["Yağlı", "Karma", "Hassas"],
+    ingredients: [
+      "Aqua",
+      "Niacinamide",
+      "Propanediol",
+      "Panthenol",
+      "Sodium Hyaluronate",
+      "Allantoin",
+      "Centella Asiatica Extract",
+      "Xanthan Gum",
+      "Ethylhexylglycerin",
+      "Sodium Benzoate"
+    ]
+  },
+  {
+    id: "skin-sensual-hyaluronic-cream",
+    brandId: "skin-sensual",
+    brand: "Skin Sensual",
+    name: "Hyaluronic Acid + Ceramide Bariyer Nemlendirici",
+    category: "yuz",
+    categoryLabel: "Cilt Bakımı · Nemlendirici",
+    image: "assets/images/blush.jpg",
+    description:
+      "Seramid, skualan ve hyaluronik asit ile kuru ve hassas cilt bariyerini onaran, parfümsüz ve tamamen vegan nemlendirici krem.",
+    crueltyFree: true,
+    skinTypes: ["Kuru", "Hassas", "Normal"],
+    ingredients: [
+      "Aqua",
+      "Squalane",
+      "Ceramide NP",
+      "Sodium Hyaluronate",
+      "Butyrospermum Parkii Butter",
+      "Cetearyl Alcohol",
+      "Panthenol",
+      "Allantoin",
+      "Tocopherol",
+      "Ethylhexylglycerin"
+    ]
+  },
+  {
+    id: "skin-sensual-cleansing-gel",
+    brandId: "skin-sensual",
+    brand: "Skin Sensual",
+    name: "Nazik Yüz Temizleme Jeli (Sülfatsız)",
+    category: "yuz",
+    categoryLabel: "Cilt Bakımı · Temizleyici",
+    image: "assets/images/lipoil.jpg",
+    description:
+      "SLS/SLES içermeyen Koko-Glukozit ve Aloe Vera bazlı, cildi kurutmadan makyaj ve kiri arındıran vegan temizleme jeli.",
+    crueltyFree: true,
+    skinTypes: ["Hassas", "Kuru", "Karma", "Normal"],
+    ingredients: [
+      "Aqua",
+      "Coco-Glucoside",
+      "Cocamidopropyl Betaine",
+      "Aloe Barbadensis Leaf Juice",
+      "Panthenol",
+      "Allantoin",
+      "Citric Acid",
+      "Sodium Benzoate",
+      "Potassium Sorbate"
+    ]
+  },
+
+  // ========================
+  // PURE CHOICE
+  // ========================
+  {
+    id: "pure-choice-vitamin-c-serum",
+    brandId: "pure-choice",
+    brand: "Pure Choice",
+    name: "Vitamin C + Ferulic Aydınlatıcı Serum",
+    category: "yuz",
+    categoryLabel: "Cilt Bakımı · Aydınlatıcı Serum",
+    image: "assets/images/foundation.jpg",
+    description:
+      "C vitamini, E vitamini ve Hyaluronik Asit ile cilt tonunu eşitleyen ve ışıltı veren %100 vegan antioksidan serum.",
+    crueltyFree: true,
+    skinTypes: ["Normal", "Kuru", "Karma"],
+    ingredients: [
+      "Aqua",
+      "Ascorbic Acid",
+      "Propanediol",
+      "Sodium Hyaluronate",
+      "Tocopherol",
+      "Panthenol",
+      "Bisabolol",
+      "Ethylhexylglycerin",
+      "Potassium Sorbate"
+    ]
+  },
+  {
+    id: "pure-choice-bha-toner",
+    brandId: "pure-choice",
+    brand: "Pure Choice",
+    name: "Salicylic Acid %2 Gözenek Arındırıcı Tonik",
+    category: "yuz",
+    categoryLabel: "Cilt Bakımı · Tonik",
+    image: "assets/images/lipoil.jpg",
+    description:
+      "Salisilik Asit (BHA), Centella ve Niasinamid ile siyah nokta ve akne oluşumunu azaltmaya destek olan vegan arındırıcı tonik.",
+    crueltyFree: true,
+    skinTypes: ["Yağlı", "Karma"],
+    ingredients: [
+      "Aqua",
+      "Propanediol",
+      "Salicylic Acid",
+      "Niacinamide",
+      "Centella Asiatica Extract",
+      "Allantoin",
+      "Panthenol",
+      "Citric Acid",
+      "Sodium Benzoate"
+    ]
+  },
+  {
+    id: "pure-choice-mineral-spf",
+    brandId: "pure-choice",
+    brand: "Pure Choice",
+    name: "Mineral Filtreli Hassas Cilt Güneş Kremi SPF 50+",
+    category: "yuz",
+    categoryLabel: "Cilt Bakımı · Güneş Kremi",
+    image: "assets/images/blush.jpg",
+    description:
+      "Çinko Oksit ve Titanyum Dioksit mineral filtreleriyle geniş spektrumlu koruma sağlayan, parfümsüz ve %100 vegan güneş kremi.",
+    crueltyFree: true,
+    skinTypes: ["Hassas", "Kuru", "Normal", "Karma"],
+    ingredients: [
+      "Aqua",
+      "Zinc Oxide",
+      "Titanium Dioxide",
+      "Caprylic/Capric Triglyceride",
+      "Squalane",
+      "Niacinamide",
+      "Bisabolol",
+      "Tocopherol",
+      "Ethylhexylglycerin"
     ]
   }
 ];

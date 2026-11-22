@@ -113,5 +113,27 @@ export const BRANDS_DATA = [
     brandVeganPolicy: "mixed",
     brandVeganLabel: "Karma (Karmin İçerebilir)",
     tagline: "Yüksek pigmentli lüks makyaj ürünleri; pembe/kırmızı tonlarda karmin veya talk bulunabilir."
+  },
+  {
+    id: "skin-sensual",
+    name: "Skin Sensual",
+    monogram: "SS",
+    accentColor: "#0f766e",
+    country: "Türkiye",
+    crueltyFree: true,
+    brandVeganPolicy: "full",
+    brandVeganLabel: "Cruelty-Free · Vegan Cilt Bakımı",
+    tagline: "Aktif içerikli serumlar, bariyer onarıcı nemlendiriciler ve hassas cilt dostu yüz temizleyiciler."
+  },
+  {
+    id: "pure-choice",
+    name: "Pure Choice",
+    monogram: "PC",
+    accentColor: "#15803d",
+    country: "Türkiye",
+    crueltyFree: true,
+    brandVeganPolicy: "full",
+    brandVeganLabel: "%100 Vegan & Temiz İçerik",
+    tagline: "Paraben ve sülfat içermeyen, bitkisel aktiflerle geliştirilmiş temiz cilt bakım serisi."
   }
 ];

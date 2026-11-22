@@ -1518,7 +1518,7 @@ function renderGlobalResults() {
                 </div>
                 <div>
                   <h3>${escapeHtml(brandName)}</h3>
-                  <p>${items.length} ürün listeleniyor · Open Beauty Facts Küresel Veritabanı</p>
+                  <p>${items.length} ürün listeleniyor · MakeYUP Küresel Analiz</p>
                 </div>
               </div>
 

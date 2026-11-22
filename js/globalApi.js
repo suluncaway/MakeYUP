@@ -17,6 +17,8 @@ export const GLOBAL_BRANDS = [
   { id: "flormar", name: "Flormar", query: "Flormar", type: "Makyaj" },
   { id: "golden-rose", name: "Golden Rose", query: "Golden Rose", type: "Makyaj" },
   { id: "pastel", name: "Pastel", query: "Pastel", type: "Makyaj" },
+  { id: "skin-sensual", name: "Skin Sensual", query: "Skin Sensual", type: "Cilt Bakımı" },
+  { id: "pure-choice", name: "Pure Choice", query: "Pure Choice", type: "Cilt Bakımı" },
   { id: "revolution", name: "Revolution", query: "Revolution", type: "Makyaj" },
   { id: "mac", name: "MAC", query: "MAC", type: "Makyaj" },
   { id: "rare-beauty", name: "Rare Beauty", query: "Rare Beauty", type: "Makyaj" },
@@ -202,12 +204,12 @@ function normalizeApiProduct(raw) {
     image: image || "assets/images/foundation.jpg",
     hasRealImage: Boolean(image),
     description: ingredientsText
-      ? "Open Beauty Facts küresel kozmetik veritabanından canlı olarak çekildi ve MakeYUP motoruyla analiz edildi."
-      : "Küresel veritabanında kayıtlı ürün (INCI içerik listesi henüz topluluk tarafından eklenmemiş).",
+      ? "Küresel kozmetik veritabanından canlı olarak çekildi ve MakeYUP motoruyla analiz edildi."
+      : "Küresel veritabanında kayıtlı ürün (INCI içerik listesi henüz eklenmemiş).",
     crueltyFree,
     ingredientsText: ingredientsText.trim(),
     source: "openbeautyfacts",
-    sourceLabel: "Open Beauty Facts (Canlı)"
+    sourceLabel: "Küresel Kayıt"
   };
 }
 

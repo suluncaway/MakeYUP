@@ -97,15 +97,15 @@ export async function fetchProductByBarcode(rawCode, { onProgress } = {}) {
   const openFactsSources = [
     {
       url: `https://world.openbeautyfacts.org/api/v2/product/${encodeURIComponent(code)}.json?fields=${fields}`,
-      label: "Open Beauty Facts (Canlı)"
+      label: "Kozmetik Veritabanı (Canlı)"
     },
     {
       url: `https://world.openproductsfacts.org/api/v2/product/${encodeURIComponent(code)}.json?fields=${fields}`,
-      label: "Open Products Facts (Canlı)"
+      label: "Genel Ürün Veritabanı (Canlı)"
     },
     {
       url: `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(code)}.json?fields=${fields}`,
-      label: "Open Food Facts (Canlı)"
+      label: "Doğal Bakım Kaydı (Canlı)"
     }
   ];
 
@@ -193,7 +193,7 @@ export async function fetchProductByBarcode(rawCode, { onProgress } = {}) {
   }
 
   throw new Error(
-    `Barkod (${code}) 4 farklı açık veritabanında (Open Beauty Facts, Open Products Facts, Open Food Facts, UPCitemdb) bulunamadı. Ürün arkasındaki INCI listesini "İçerik Analizörü" sekmesine yapıştırarak anında analiz edebilirsiniz.`
+    `Barkod (${code}) bağlı 4 farklı küresel veritabanında bulunamadı. Ürün arkasındaki INCI listesini "İçerik Analizörü" sekmesine yapıştırarak anında analiz edebilirsiniz.`
   );
 }
 
