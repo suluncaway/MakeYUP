@@ -152,7 +152,8 @@ main > section.view-section { height: auto; min-height: calc(var(--h, 1) * 100sv
 .brand-pill.is-active { box-shadow: none; }
 
 /* the nav words: the kit's links, never the old tab pills */
-.nav__link.nav-tab, .nav__link.nav-tab.is-active { background: none; box-shadow: none; padding: 0; border-radius: 0; font-size: inherit; font-weight: inherit; color: inherit; }
+.nav__link.nav-tab, .nav__link.nav-tab.is-active { background: none; box-shadow: none; padding: 0 var(--s-3); border-radius: var(--r-sm); font-size: 15px; font-weight: 500; color: var(--ink); }
+@media (min-width: 1024px) and (max-width: 1279px) { .nav__link.nav-tab { padding: 0 var(--s-2); } }
 
 /* on states of chips and brand shortcuts: an outline, never a third filled button */
 .chip.is-active, .chip[aria-pressed="true"], .brand-pill.is-active {
