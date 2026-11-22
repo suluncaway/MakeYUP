@@ -2848,3 +2848,24 @@ a:focus-visible {
 .inci-sci-links a:hover {
   text-decoration: underline;
 }
+
+.inci-sci-links {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.3rem;
+}
+
+.cosing-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  font-size: 0.73rem;
+  color: var(--text-secondary);
+}
+
+.sci-link-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}

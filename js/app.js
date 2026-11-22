@@ -5,7 +5,7 @@
 import { BRANDS_DATA } from "./data/brands.js";
 import { PRODUCTS_DATA } from "./data/products.js";
 import { INGREDIENTS_DB } from "./data/ingredients.js";
-import { analyzeIngredients } from "./analyzer.js";
+import { analyzeIngredients, loadCosingIndex, getCosingMeta } from "./analyzer.js";
 import {
   SAMPLE_BARCODES,
   BarcodeScannerController,
@@ -140,12 +140,31 @@ function renderIngredientCard(item) {
     : "";
 
   const encodedInci = encodeURIComponent(item.inci || item.rawName || "");
+  const cosing = getCosingMeta(item.inci || item.rawName);
+  const cosingPills = [];
+  if (cosing) {
+    if (cosing.cas) cosingPills.push(`<span><strong>CAS:</strong> ${escapeHtml(cosing.cas)}</span>`);
+    if (cosing.ec) cosingPills.push(`<span><strong>EC:</strong> ${escapeHtml(cosing.ec)}</span>`);
+    if (cosing.functionsTr.length > 0) {
+      cosingPills.push(`<span><strong>AB CosIng İşlevi:</strong> ${escapeHtml(cosing.functionsTr.join(", "))}</span>`);
+    }
+    if (cosing.comedogenicity !== null) {
+      cosingPills.push(`<span><strong>Komedojenik:</strong> ${escapeHtml(cosing.comedogenicity)}/5</span>`);
+    }
+    if (cosing.irritancy !== null) {
+      cosingPills.push(`<span><strong>Tahriş:</strong> ${escapeHtml(cosing.irritancy)}/5</span>`);
+    }
+  }
+
   const sciLinks = `
     <div class="inci-sci-links">
-      <span>Bilimsel Kaynak:</span>
-      <a href="https://cosmileeurope.eu/inci/search/?q=${encodedInci}" target="_blank" rel="noopener noreferrer">COSMILE EU ↗</a>
-      <a href="https://www.ewg.org/skindeep/search/?search=${encodedInci}" target="_blank" rel="noopener noreferrer">EWG Skin Deep ↗</a>
-      <a href="https://ec.europa.eu/growth/tools-databases/cosing/" target="_blank" rel="noopener noreferrer">AB CosIng ↗</a>
+      ${cosingPills.length > 0 ? `<div class="cosing-meta-row">${cosingPills.join(" · ")}</div>` : ""}
+      <div class="sci-link-row">
+        <span>Resmi Kaynaklar:</span>
+        <a href="https://cosmileeurope.eu/inci/search/?q=${encodedInci}" target="_blank" rel="noopener noreferrer">COSMILE EU ↗</a>
+        <a href="https://www.ewg.org/skindeep/search/?search=${encodedInci}" target="_blank" rel="noopener noreferrer">EWG Skin Deep ↗</a>
+        <a href="https://ec.europa.eu/growth/tools-databases/cosing/" target="_blank" rel="noopener noreferrer">AB CosIng ↗</a>
+      </div>
     </div>
   `;
 
@@ -1766,6 +1785,7 @@ globalResultsContainerEl.addEventListener("click", (e) => {
 // Başlatma
 // ============================================================
 initTheme();
+loadCosingIndex();
 renderGlobalBrandsStrip();
 renderGlobalCategoriesStrip();
 renderBrandStrip();

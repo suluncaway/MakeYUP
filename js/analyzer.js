@@ -6,6 +6,70 @@
 
 import { INGREDIENTS_DB } from "./data/ingredients.js";
 
+// 2.748 bileşenlik AB CosIng (CAS / EC / resmi işlev / komedojenik) sözlüğü
+let cosingMap = {};
+const COSING_FUNC_TR = {
+  solvent: "Çözücü",
+  humectant: "Nem Tutucu",
+  "skin conditioning": "Cilt Bakım / Yumuşatıcı",
+  emollient: "Yumuşatıcı",
+  emulsifying: "Emülgatör",
+  "emulsion stabilising": "Emülsiyon Dengeleyici",
+  surfactant: "Yüzey Aktif (Temizleyici)",
+  preservative: "Koruyucu",
+  antioxidant: "Antioksidan",
+  "viscosity controlling": "Kıvam Düzenleyici",
+  perfuming: "Koku / Parfüm",
+  "uv absorber": "UV Emici",
+  "uv filter": "UV Filtresi",
+  "film forming": "Film Oluşturucu",
+  colorant: "Renklendirici",
+  cosmetic_colorant: "Kozmetik Boya",
+  smoothing: "Pürüzsüzleştirici",
+  soothing: "Yatıştırıcı",
+  "skin protecting": "Cilt Koruyucu",
+  astringent: "Gözenek Sıkılaştırıcı",
+  antimicrobial: "Antimikrobiyal",
+  chelating: "Şelatlayıcı",
+  buffering: "pH Dengeleyici",
+  binding: "Bağlayıcı",
+  bulking: "Dolgu Maddesi",
+  opacifying: "Opaklaştırıcı",
+  "gel forming": "Jel Oluşturucu",
+  masking: "Koku Maskeleyici",
+  cleansing: "Temizleyici",
+  foaming: "Köpürtücü"
+};
+
+export async function loadCosingIndex() {
+  try {
+    const res = await fetch("js/data/cosing_index.json");
+    if (res.ok) {
+      cosingMap = await res.json();
+    }
+  } catch {
+    // sessizce yerel motorla devam et
+  }
+}
+
+export function getCosingMeta(inciName) {
+  const raw = String(inciName || "").trim().toLowerCase();
+  const norm = normalizeText(inciName);
+  if (!norm && !raw) return null;
+  const hit = cosingMap[raw] || cosingMap[norm];
+  if (!hit) return null;
+  const funcsTr = Array.isArray(hit.fn)
+    ? hit.fn.map((f) => COSING_FUNC_TR[f.toLowerCase()] || f)
+    : [];
+  return {
+    cas: hit.cas || null,
+    ec: hit.ec || null,
+    functionsTr: funcsTr,
+    irritancy: hit.irr ?? null,
+    comedogenicity: hit.com ?? null
+  };
+}
+
 /**
  * Metni eşleştirme için normalize eder.
  */
