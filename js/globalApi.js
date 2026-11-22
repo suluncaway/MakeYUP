@@ -211,7 +211,7 @@ function normalizeApiProduct(raw) {
   };
 }
 
-async function queryObfEndpoint(terms, page, pageSize) {
+async function queryObfEndpoint(terms, page, pageSize, host = "world.openbeautyfacts.org") {
   const params = new URLSearchParams({
     action: "process",
     json: "1",
@@ -228,7 +228,7 @@ async function queryObfEndpoint(terms, page, pageSize) {
     params.set("sort_by", "unique_scans_n");
   }
 
-  const url = `https://world.openbeautyfacts.org/cgi/search.pl?${params.toString()}`;
+  const url = `https://${host}/cgi/search.pl?${params.toString()}`;
   const response = await fetch(url, { headers: { Accept: "application/json" } });
   if (!response.ok) {
     throw new Error(`Küresel veritabanı yanıt vermedi (HTTP ${response.status}).`);
@@ -237,7 +237,8 @@ async function queryObfEndpoint(terms, page, pageSize) {
 }
 
 /**
- * Küresel Open Beauty Facts veritabanında akıllı Türkçe destekli canlı arama yapar.
+ * Küresel Open Beauty Facts + Open Products Facts veritabanlarında
+ * akıllı Türkçe destekli çoklu kaynaklı canlı arama yapar.
  */
 export async function searchGlobalProducts({
   query = "",
@@ -257,17 +258,38 @@ export async function searchGlobalProducts({
     return searchCache.get(cacheKey);
   }
 
-  let data = await queryObfEndpoint(combinedTerms, page, pageSize);
+  let data = await queryObfEndpoint(combinedTerms, page, pageSize, "world.openbeautyfacts.org");
   let totalCount = Number(data.count || 0);
   let rawProducts = Array.isArray(data.products) ? data.products : [];
 
-  // Çok dar çok-kelimeli bir aramada 0 sonuç dönerse ilk anlamlı kelimeyle (genellikle marka) yedek arama yap
+  // Çok dar çok-kelimeli bir aramada 0 sonuç dönerse ilk anlamlı kelimeyle yedek arama yap
   if (totalCount === 0 && page === 1 && combinedTerms.includes(" ")) {
     const fallbackTerm = brand || translatedQuery.split(/\s+/)[0] || categoryTerm;
     if (fallbackTerm && fallbackTerm !== combinedTerms) {
-      data = await queryObfEndpoint(fallbackTerm, page, pageSize);
+      data = await queryObfEndpoint(fallbackTerm, page, pageSize, "world.openbeautyfacts.org");
       totalCount = Number(data.count || 0);
       rawProducts = Array.isArray(data.products) ? data.products : [];
+    }
+  }
+
+  // Tek veritabanına bağlı kalma: arama yapıldığında Open Products Facts'ten de ek kozmetik sonuçları birleştir
+  if (combinedTerms && page === 1 && rawProducts.length < 25) {
+    try {
+      const opfData = await queryObfEndpoint(combinedTerms, 1, 20, "world.openproductsfacts.org");
+      const opfRaw = Array.isArray(opfData.products) ? opfData.products : [];
+      if (opfRaw.length > 0) {
+        const seenCodes = new Set(rawProducts.map((p) => String(p.code || "")));
+        for (const item of opfRaw) {
+          const c = String(item.code || "");
+          if (c && !seenCodes.has(c)) {
+            seenCodes.add(c);
+            rawProducts.push(item);
+          }
+        }
+        totalCount += Number(opfData.count || 0);
+      }
+    } catch {
+      // Yedek veritabanı hata verirse ana sonuçları koru
     }
   }
 

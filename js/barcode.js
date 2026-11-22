@@ -1,13 +1,17 @@
 /**
- * MakeYUP — Barkod Tarama & Open Beauty Facts API Modülü
- * 1) Native BarcodeDetector (Chrome/Edge/Android) + ZXing ES Module fallback (Firefox/Safari)
- * 2) Fotoğraftan barkod okuma desteği
- * 3) Canlı Open Beauty Facts API v2 (https://world.openbeautyfacts.org) entegrasyonu
+ * MakeYUP — Gelişmiş Çoklu-Veritabanı Barkod & Profesyonel Kamera Odaklama Modülü
+ *
+ * 1) Çoklu Veritabanı Sorgusu (Tek veritabanına bağlı kalmaz):
+ *    MakeYUP Katalog -> Open Beauty Facts -> Open Products Facts -> Open Food Facts -> UPCitemdb
+ * 2) Gelişmiş Kamera Barkod Okuma:
+ *    - Sürekli Otomatik Odaklama (focusMode: continuous) + Dokunarak Odaklama (Tap-to-Focus)
+ *    - Akıllı Yakınlaştırma (Zoom 1x-3x, varsayılan 1.5x ile küçük kozmetik barkodlarında net odak)
+ *    - Flaş (Torch) ve Kamera Değiştirme (Arka Ana / Makro / Ön)
+ *    - Merkez Kırpma (ROI) + Kontrast Artırımlı Canvas tarama (parlak/yuvarlak ruj-maskara tüpleri için)
  */
 
 import { PRODUCTS_DATA } from "./data/products.js";
 
-// Yerel katalog ürünleri için örnek barkod eşleştirmeleri
 export const LOCAL_BARCODES = {
   "8690001001011": "rare-soft-pinch-blush",
   "8690001001028": "flormar-silk-matte-lipstick",
@@ -15,7 +19,6 @@ export const LOCAL_BARCODES = {
   "8690001001042": "nyx-fat-oil-lip"
 };
 
-// Hızlı deneme için hem yerel hem gerçek Open Beauty Facts barkodları
 export const SAMPLE_BARCODES = [
   {
     code: "4250947516027",
@@ -39,24 +42,33 @@ export const SAMPLE_BARCODES = [
   }
 ];
 
-/**
- * Barkod numarasını temizler (sadece rakamlar).
- */
 export function cleanBarcode(raw) {
   return String(raw || "").replace(/[^0-9]/g, "").trim();
 }
 
+async function fetchWithTimeout(url, timeoutMs = 6500) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, {
+      headers: { Accept: "application/json" },
+      signal: controller.signal
+    });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 /**
- * Barkod ile ürün bilgisi ve INCI içerik listesini getirir.
- * Önce yerel eşleşmeye bakar, yoksa Open Beauty Facts API'den canlı çeker.
+ * Birden fazla açık kozmetik ve ürün veritabanında sırayla barkod sorgular.
  */
-export async function fetchProductByBarcode(rawCode) {
+export async function fetchProductByBarcode(rawCode, { onProgress } = {}) {
   const code = cleanBarcode(rawCode);
   if (code.length < 6) {
     throw new Error("Geçerli bir barkod numarası girin (en az 6 rakam, örn: EAN-13).");
   }
 
-  // 1. Yerel katalogda kayıtlı örnek barkod mu?
+  // 1. Yerel katalog
   const localId = LOCAL_BARCODES[code];
   if (localId) {
     const prod = PRODUCTS_DATA.find((p) => p.id === localId);
@@ -78,10 +90,11 @@ export async function fetchProductByBarcode(rawCode) {
     }
   }
 
-  // 2. Open Beauty Facts API v2 (ve bulunamazsa Open Products Facts yedek API) üzerinden canlı sorgula
+  // 2. Çoklu Open Facts veritabanları (Open Beauty Facts -> Open Products Facts -> Open Food Facts)
   const fields =
     "product_name,product_name_tr,product_name_en,brands,image_front_url,image_url,ingredients_text,ingredients_text_tr,ingredients_text_en,ingredients,labels_tags,categories";
-  const endpoints = [
+
+  const openFactsSources = [
     {
       url: `https://world.openbeautyfacts.org/api/v2/product/${encodeURIComponent(code)}.json?fields=${fields}`,
       label: "Open Beauty Facts (Canlı)"
@@ -89,94 +102,155 @@ export async function fetchProductByBarcode(rawCode) {
     {
       url: `https://world.openproductsfacts.org/api/v2/product/${encodeURIComponent(code)}.json?fields=${fields}`,
       label: "Open Products Facts (Canlı)"
+    },
+    {
+      url: `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(code)}.json?fields=${fields}`,
+      label: "Open Food Facts (Canlı)"
     }
   ];
 
-  let data = null;
-  let usedLabel = "Open Beauty Facts (Canlı)";
-
-  for (const ep of endpoints) {
+  for (const src of openFactsSources) {
+    onProgress?.(`${src.label.replace(" (Canlı)", "")} sorgulanıyor...`);
     try {
-      const response = await fetch(ep.url, { headers: { Accept: "application/json" } });
+      const response = await fetchWithTimeout(src.url, 6500);
       if (response.ok) {
         const json = await response.json();
         if (json.status === 1 && json.product) {
-          data = json;
-          usedLabel = ep.label;
-          break;
+          const p = json.product;
+          const name =
+            p.product_name_tr || p.product_name || p.product_name_en || `Barkodlu Ürün (${code})`;
+          const brand = p.brands ? p.brands.split(",")[0].trim() : "Bilinmeyen Marka";
+          const image = p.image_front_url || p.image_url || "assets/images/foundation.jpg";
+
+          let ingredientsText =
+            p.ingredients_text_en || p.ingredients_text || p.ingredients_text_tr || "";
+
+          if (!ingredientsText && Array.isArray(p.ingredients) && p.ingredients.length > 0) {
+            ingredientsText = p.ingredients
+              .map((i) => i.text || i.id?.replace(/^en:/, ""))
+              .filter(Boolean)
+              .join(", ");
+          }
+
+          const labels = Array.isArray(p.labels_tags) ? p.labels_tags : [];
+          const isCrueltyFree = labels.some(
+            (l) => l.includes("cruelty-free") || l.includes("not-tested-on-animals")
+          );
+
+          return {
+            source: "openbeautyfacts",
+            sourceLabel: src.label,
+            barcode: code,
+            name,
+            brand,
+            categoryLabel: p.categories ? p.categories.split(",")[0].trim() : "Kozmetik Ürünü",
+            image,
+            description: ingredientsText
+              ? `${src.label} veritabanından barkod ile canlı çekildi ve MakeYUP motoruyla analiz edildi.`
+              : `Ürün ${src.label} içinde bulundu ancak INCI içerik metni henüz eklenmemiş.`,
+            crueltyFree: isCrueltyFree,
+            ingredientsText: ingredientsText.trim(),
+            ingredientsList: null,
+            apiLabels: labels
+          };
         }
       }
     } catch {
-      // sonraki kaynağa geç
+      // Sonraki veritabanına geç
     }
   }
 
-  if (!data || !data.product) {
-    throw new Error(
-      `Barkod (${code}) Open Beauty Facts ve Open Products Facts veritabanlarında bulunamadı. Ürünün arkasındaki INCI listesini "İçerik Analizörü" sekmesine yapıştırarak anında analiz edebilirsiniz.`
+  // 3. Yedek Küresel Barkod Kaynağı: UPCitemdb (ürün adı/marka/fotoğraf için)
+  onProgress?.("UPCitemdb yedek veritabanı sorgulanıyor...");
+  try {
+    const upcRes = await fetchWithTimeout(
+      `https://api.upcitemdb.com/prod/trial/lookup?upc=${encodeURIComponent(code)}`,
+      5000
     );
+    if (upcRes.ok) {
+      const upcJson = await upcRes.json();
+      const item = Array.isArray(upcJson.items) ? upcJson.items[0] : null;
+      if (item && item.title) {
+        return {
+          source: "openbeautyfacts",
+          sourceLabel: "UPCitemdb (Yedek API)",
+          barcode: code,
+          name: item.title,
+          brand: item.brand || "Bilinmeyen Marka",
+          categoryLabel: item.category || "Kozmetik / Kişisel Bakım",
+          image: (Array.isArray(item.images) && item.images[0]) || "assets/images/foundation.jpg",
+          description:
+            "Ürün küresel UPCitemdb kaydında bulundu. Bu kaynak INCI metni sunmadığından ürün arkasındaki içerik listesini İçerik Analizörü'ne yapıştırabilirsiniz.",
+          crueltyFree: false,
+          ingredientsText: "",
+          ingredientsList: null,
+          apiLabels: []
+        };
+      }
+    }
+  } catch {
+    // CORS veya limit durumunda sessizce geç
   }
 
-  const p = data.product;
-  const name =
-    p.product_name_tr || p.product_name || p.product_name_en || `Barkodlu Ürün (${code})`;
-  const brand = p.brands ? p.brands.split(",")[0].trim() : "Bilinmeyen Marka";
-  const image = p.image_front_url || p.image_url || "assets/images/foundation.jpg";
-
-  // İçerik metnini çıkar
-  let ingredientsText =
-    p.ingredients_text_en || p.ingredients_text || p.ingredients_text_tr || "";
-
-  if (!ingredientsText && Array.isArray(p.ingredients) && p.ingredients.length > 0) {
-    ingredientsText = p.ingredients
-      .map((i) => i.text || i.id?.replace(/^en:/, ""))
-      .filter(Boolean)
-      .join(", ");
-  }
-
-  const labels = Array.isArray(p.labels_tags) ? p.labels_tags : [];
-  const isCrueltyFree = labels.some(
-    (l) => l.includes("cruelty-free") || l.includes("not-tested-on-animals")
+  throw new Error(
+    `Barkod (${code}) 4 farklı açık veritabanında (Open Beauty Facts, Open Products Facts, Open Food Facts, UPCitemdb) bulunamadı. Ürün arkasındaki INCI listesini "İçerik Analizörü" sekmesine yapıştırarak anında analiz edebilirsiniz.`
   );
-
-  return {
-    source: "openbeautyfacts",
-    sourceLabel: usedLabel,
-    barcode: code,
-    name,
-    brand,
-    categoryLabel: p.categories ? p.categories.split(",")[0].trim() : "Kozmetik Ürünü",
-    image,
-    description: ingredientsText
-      ? "Open Beauty Facts açık veritabanından barkod ile canlı çekildi ve MakeYUP motoruyla analiz edildi."
-      : "Ürün bulundu ancak bu barkod için açık veritabanında henüz INCI içerik metni girilmemiş.",
-    crueltyFree: isCrueltyFree,
-    ingredientsText: ingredientsText.trim(),
-    ingredientsList: null,
-    apiLabels: labels
-  };
 }
 
 // ============================================================
-// Kamera & Fotoğraf Barkod Tarayıcı Sınıfı
+// Profesyonel Kamera Odaklama & Kontrastlı Barkod Tarayıcı
 // ============================================================
 export class BarcodeScannerController {
-  constructor(videoEl, { onDetected, onStatus, onError }) {
+  constructor(videoEl, { onDetected, onStatus, onError, onCapabilities }) {
     this.videoEl = videoEl;
     this.onDetected = onDetected;
     this.onStatus = onStatus;
     this.onError = onError;
+    this.onCapabilities = onCapabilities;
 
     this.stream = null;
+    this.videoTrack = null;
     this.isRunning = false;
-    this.rafId = null;
-    this.zxingControls = null;
+    this.scanTimer = null;
     this.lastCode = null;
     this.lastTime = 0;
+
+    this.devices = [];
+    this.currentDeviceIndex = -1;
+    this.torchEnabled = false;
+    this.currentZoom = 1;
+
+    this.detector = null;
+    this.zxingReader = null;
+    this.canvas = document.createElement("canvas");
+    this.ctx = this.canvas.getContext("2d", { willReadFrequently: true });
   }
 
-  async start() {
-    if (this.isRunning) return;
+  async _loadDevices() {
+    try {
+      const all = await navigator.mediaDevices.enumerateDevices();
+      const cams = all.filter((d) => d.kind === "videoinput");
+      // Arka kameraları (back / rear / environment) öne al, ultra-wide yerine ana kamerayı tercih et
+      cams.sort((a, b) => {
+        const al = (a.label || "").toLowerCase();
+        const bl = (b.label || "").toLowerCase();
+        const aRear = /back|rear|environment/.test(al) ? 1 : 0;
+        const bRear = /back|rear|environment/.test(bl) ? 1 : 0;
+        if (bRear !== aRear) return bRear - aRear;
+        const aUltra = /ultra|wide|0\.5/.test(al) ? 1 : 0;
+        const bUltra = /ultra|wide|0\.5/.test(bl) ? 1 : 0;
+        return aUltra - bUltra;
+      });
+      this.devices = cams;
+    } catch {
+      this.devices = [];
+    }
+  }
+
+  async start(deviceId = null) {
+    if (this.isRunning) {
+      this.stop();
+    }
 
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       this.onError?.(
@@ -186,123 +260,269 @@ export class BarcodeScannerController {
     }
 
     this.isRunning = true;
-    this.onStatus?.("Kamera başlatılıyor...");
+    this.onStatus?.("Kamera ve otomatik odaklama başlatılıyor...");
 
-    // 1. Native BarcodeDetector varsa en hızlı ve sıfır bağımlılıklı yolu kullan
-    if ("BarcodeDetector" in window) {
-      try {
-        await this._startNativeDetector();
-        return;
-      } catch (err) {
-        // Native destek başarısız olursa ZXing fallback'e geç
-        console.warn("Native BarcodeDetector fallback:", err);
-      }
-    }
-
-    // 2. Evrensel Fallback: ZXing Browser ESM (Safari / Firefox / Desktop)
     try {
-      await this._startZxingFallback();
+      const videoConstraints = deviceId
+        ? {
+            deviceId: { exact: deviceId },
+            width: { ideal: 1920, min: 640 },
+            height: { ideal: 1080, min: 480 }
+          }
+        : {
+            facingMode: { ideal: "environment" },
+            width: { ideal: 1920, min: 640 },
+            height: { ideal: 1080, min: 480 }
+          };
+
+      this.stream = await navigator.mediaDevices.getUserMedia({
+        video: videoConstraints,
+        audio: false
+      });
+
+      this.videoEl.srcObject = this.stream;
+      await this.videoEl.play();
+
+      this.videoTrack = this.stream.getVideoTracks()[0] || null;
+      await this._loadDevices();
+
+      if (this.videoTrack) {
+        const activeId = this.videoTrack.getSettings?.().deviceId;
+        const idx = this.devices.findIndex((d) => d.deviceId === activeId);
+        if (idx >= 0) this.currentDeviceIndex = idx;
+      }
+
+      await this._configureFocusAndCapabilities();
+      await this._initBarcodeEngine();
+
+      this.onStatus?.("Kamera aktif — Barkodu 15–20 cm mesafeden yatay tutun (odak için ekrana dokunun)");
+      this._startScanLoop();
     } catch (err) {
       this.stop();
       this.onError?.(
         err?.name === "NotAllowedError"
-          ? "Kamera izni reddedildi. Tarayıcı adres çubuğundan kamera izni verebilir veya 'Fotoğraftan Tara' seçeneğini kullanabilirsiniz."
+          ? "Kamera izni reddedildi. Tarayıcı adres çubuğundan izin verebilir veya 'Fotoğraftan Tara' seçeneğini kullanabilirsiniz."
           : `Kamera başlatılamadı: ${err?.message || "Bilinmeyen hata"}`
       );
     }
   }
 
-  async _startNativeDetector() {
-    const supported = await window.BarcodeDetector.getSupportedFormats();
-    const wanted = ["ean_13", "ean_8", "upc_a", "upc_e", "code_128", "code_39"].filter((f) =>
-      supported.includes(f)
+  async _configureFocusAndCapabilities() {
+    if (!this.videoTrack || typeof this.videoTrack.getCapabilities !== "function") {
+      this.onCapabilities?.({ canZoom: false, canTorch: false, canSwitch: this.devices.length > 1, canFocus: false });
+      return;
+    }
+
+    const caps = this.videoTrack.getCapabilities();
+    const advanced = [];
+
+    // 1. Sürekli otomatik odaklama (continuous autofocus)
+    const canFocus = Array.isArray(caps.focusMode) && caps.focusMode.length > 0;
+    if (canFocus && caps.focusMode.includes("continuous")) {
+      advanced.push({ focusMode: "continuous" });
+    }
+
+    // 2. Hafif zoom (1.5x) küçük ruj/maskara barkodlarında kamerayı yaklaştırmadan net odak sağlar
+    let canZoom = false;
+    let zoomMin = 1;
+    let zoomMax = 1;
+    let zoomStep = 0.1;
+    if (caps.zoom && caps.zoom.max > caps.zoom.min) {
+      canZoom = true;
+      zoomMin = caps.zoom.min;
+      zoomMax = Math.min(caps.zoom.max, 4);
+      zoomStep = caps.zoom.step || 0.1;
+      const idealZoom = Math.min(Math.max(1.5, zoomMin), zoomMax);
+      this.currentZoom = idealZoom;
+      advanced.push({ zoom: idealZoom });
+    }
+
+    if (advanced.length > 0) {
+      try {
+        await this.videoTrack.applyConstraints({ advanced });
+      } catch {
+        // Bazı cihazlar birleşik constraint'i reddedebilir; tek tek dene
+        for (const c of advanced) {
+          try {
+            await this.videoTrack.applyConstraints({ advanced: [c] });
+          } catch {
+            // yoksay
+          }
+        }
+      }
+    }
+
+    this.onCapabilities?.({
+      canZoom,
+      zoomMin,
+      zoomMax,
+      zoomStep,
+      zoomValue: this.currentZoom,
+      canTorch: Boolean(caps.torch),
+      canSwitch: this.devices.length > 1,
+      canFocus
+    });
+  }
+
+  async setZoom(value) {
+    if (!this.videoTrack) return;
+    this.currentZoom = Number(value);
+    try {
+      await this.videoTrack.applyConstraints({ advanced: [{ zoom: this.currentZoom }] });
+    } catch {
+      // yoksay
+    }
+  }
+
+  async toggleTorch() {
+    if (!this.videoTrack) return false;
+    this.torchEnabled = !this.torchEnabled;
+    try {
+      await this.videoTrack.applyConstraints({ advanced: [{ torch: this.torchEnabled }] });
+      return this.torchEnabled;
+    } catch {
+      this.torchEnabled = false;
+      return false;
+    }
+  }
+
+  async triggerRefocus() {
+    if (!this.videoTrack || typeof this.videoTrack.getCapabilities !== "function") return;
+    const caps = this.videoTrack.getCapabilities();
+    if (!Array.isArray(caps.focusMode)) return;
+    try {
+      if (caps.focusMode.includes("single-shot")) {
+        await this.videoTrack.applyConstraints({ advanced: [{ focusMode: "single-shot" }] });
+      }
+      if (caps.focusMode.includes("continuous")) {
+        setTimeout(() => {
+          this.videoTrack?.applyConstraints({ advanced: [{ focusMode: "continuous" }] }).catch(() => {});
+        }, 350);
+      }
+    } catch {
+      // yoksay
+    }
+  }
+
+  async switchCamera() {
+    if (this.devices.length <= 1) return;
+    this.currentDeviceIndex = (this.currentDeviceIndex + 1) % this.devices.length;
+    const nextDevice = this.devices[this.currentDeviceIndex];
+    if (nextDevice?.deviceId) {
+      await this.start(nextDevice.deviceId);
+    }
+  }
+
+  async _initBarcodeEngine() {
+    if ("BarcodeDetector" in window) {
+      try {
+        const supported = await window.BarcodeDetector.getSupportedFormats();
+        const wanted = ["ean_13", "ean_8", "upc_a", "upc_e", "code_128", "code_39"].filter((f) =>
+          supported.includes(f)
+        );
+        this.detector = new window.BarcodeDetector({
+          formats: wanted.length ? wanted : supported
+        });
+        return;
+      } catch {
+        this.detector = null;
+      }
+    }
+
+    // Native BarcodeDetector yoksa ZXing yükle
+    const { BrowserMultiFormatReader } = await import(
+      "https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.5/+esm"
     );
-    const detector = new window.BarcodeDetector({
-      formats: wanted.length ? wanted : supported
-    });
+    this.zxingReader = new BrowserMultiFormatReader();
+  }
 
-    this.stream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: { ideal: "environment" },
-        width: { ideal: 1280 },
-        height: { ideal: 720 }
-      },
-      audio: false
-    });
-
-    this.videoEl.srcObject = this.stream;
-    await this.videoEl.play();
-    this.onStatus?.("Kamera aktif — Barkodu çerçeve içine tutun");
-
-    const scanLoop = async () => {
+  _startScanLoop() {
+    const tick = async () => {
       if (!this.isRunning) return;
       try {
-        if (this.videoEl.readyState >= 2) {
-          const barcodes = await detector.detect(this.videoEl);
-          if (barcodes && barcodes.length > 0) {
-            const raw = barcodes[0].rawValue;
-            this._handleHit(raw);
+        if (this.videoEl.readyState >= 2 && this.videoEl.videoWidth > 0) {
+          const code = await this._detectFrame();
+          if (code) {
+            this._handleHit(code);
+            return;
           }
         }
       } catch {
         // tek kare hatalarını yoksay
       }
       if (this.isRunning) {
-        this.rafId = requestAnimationFrame(scanLoop);
+        this.scanTimer = setTimeout(tick, 180);
       }
     };
-
-    this.rafId = requestAnimationFrame(scanLoop);
+    this.scanTimer = setTimeout(tick, 220);
   }
 
-  async _startZxingFallback() {
-    this.onStatus?.("Evrensel barkod tarayıcı yükleniyor...");
-    const { BrowserMultiFormatReader } = await import(
-      "https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.5/+esm"
-    );
-    if (!this.isRunning) return;
+  async _detectFrame() {
+    const vw = this.videoEl.videoWidth;
+    const vh = this.videoEl.videoHeight;
 
-    const reader = new BrowserMultiFormatReader();
-    this.zxingControls = await reader.decodeFromConstraints(
-      { video: { facingMode: { ideal: "environment" } } },
-      this.videoEl,
-      (result) => {
-        if (result && this.isRunning) {
-          this._handleHit(result.getText());
-        }
+    // 1. Önce merkez barkod şeridini (ROI) kırpıp kontrastını artırarak tara
+    const cropW = Math.round(vw * 0.8);
+    const cropH = Math.round(vh * 0.45);
+    const cropX = Math.round((vw - cropW) / 2);
+    const cropY = Math.round((vh - cropH) / 2);
+
+    this.canvas.width = cropW;
+    this.canvas.height = cropH;
+    this.ctx.filter = "contrast(1.35) grayscale(1)";
+    this.ctx.drawImage(this.videoEl, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+    this.ctx.filter = "none";
+
+    if (this.detector) {
+      // Önce yüksek kontrastlı kırpılmış merkez alan
+      const roiHits = await this.detector.detect(this.canvas);
+      if (roiHits && roiHits.length > 0) return roiHits[0].rawValue;
+
+      // Bulunamazsa tam video karesi
+      const fullHits = await this.detector.detect(this.videoEl);
+      if (fullHits && fullHits.length > 0) return fullHits[0].rawValue;
+      return null;
+    }
+
+    if (this.zxingReader) {
+      try {
+        const res = this.zxingReader.decodeFromCanvas(this.canvas);
+        if (res) return res.getText();
+      } catch {
+        // barkod bu karede yok
       }
-    );
-    this.onStatus?.("Kamera aktif — Barkodu çerçeve içine tutun");
+    }
+
+    return null;
   }
 
   _handleHit(rawValue) {
     const code = cleanBarcode(rawValue);
     const now = Date.now();
-    if (!code || (code === this.lastCode && now - this.lastTime < 3000)) return;
+    if (!code || code.length < 6 || (code === this.lastCode && now - this.lastTime < 3000)) return;
     this.lastCode = code;
     this.lastTime = now;
+    try {
+      navigator.vibrate?.(80);
+    } catch {
+      // yoksay
+    }
     this.stop();
     this.onDetected?.(code);
   }
 
   stop() {
     this.isRunning = false;
-    if (this.rafId) {
-      cancelAnimationFrame(this.rafId);
-      this.rafId = null;
-    }
-    if (this.zxingControls) {
-      try {
-        this.zxingControls.stop();
-      } catch {
-        // ignore
-      }
-      this.zxingControls = null;
+    this.torchEnabled = false;
+    if (this.scanTimer) {
+      clearTimeout(this.scanTimer);
+      this.scanTimer = null;
     }
     if (this.stream) {
       this.stream.getTracks().forEach((t) => t.stop());
       this.stream = null;
     }
+    this.videoTrack = null;
     if (this.videoEl) {
       this.videoEl.srcObject = null;
     }
@@ -315,7 +535,6 @@ export class BarcodeScannerController {
 export async function scanBarcodeFromImageFile(file) {
   const imageUrl = URL.createObjectURL(file);
   try {
-    // 1. Native BarcodeDetector ile dene
     if ("BarcodeDetector" in window) {
       const bitmap = await createImageBitmap(file);
       const detector = new window.BarcodeDetector({
@@ -328,7 +547,6 @@ export async function scanBarcodeFromImageFile(file) {
       }
     }
 
-    // 2. ZXing fallback ile dene
     const { BrowserMultiFormatReader } = await import(
       "https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.5/+esm"
     );

@@ -361,6 +361,14 @@ const analyzerResultEl = document.getElementById("analyzerResult");
 const scannerViewportEl = document.getElementById("scannerViewport");
 const scannerVideoEl = document.getElementById("scannerVideo");
 const scannerReticleEl = document.getElementById("scannerReticle");
+const focusRingEl = document.getElementById("focusRing");
+const cameraProBarEl = document.getElementById("cameraProBar");
+const cameraZoomWrapEl = document.getElementById("cameraZoomWrap");
+const cameraZoomSliderEl = document.getElementById("cameraZoomSlider");
+const cameraZoomValEl = document.getElementById("cameraZoomVal");
+const refocusBtn = document.getElementById("refocusBtn");
+const torchBtn = document.getElementById("torchBtn");
+const switchCameraBtn = document.getElementById("switchCameraBtn");
 const scannerStatusEl = document.getElementById("scannerStatus");
 const startCameraBtn = document.getElementById("startCameraBtn");
 const stopCameraBtn = document.getElementById("stopCameraBtn");
@@ -1069,15 +1077,17 @@ function stopScannerUI() {
   scannerController.stop();
   scannerViewportEl.classList.remove("is-streaming");
   scannerReticleEl.hidden = true;
+  cameraProBarEl.hidden = true;
   startCameraBtn.hidden = false;
   stopCameraBtn.hidden = true;
+  torchBtn.setAttribute("aria-pressed", "false");
 }
 
 const scannerController = new BarcodeScannerController(scannerVideoEl, {
   onDetected: (code) => {
     stopScannerUI();
     barcodeInputEl.value = code;
-    setScannerStatus(`Barkod okundu: ${code} — İçerik getiriliyor...`, "success");
+    setScannerStatus(`Barkod okundu: ${code} — Çoklu veritabanında aranıyor...`, "success");
     lookupAndRenderBarcode(code);
   },
   onStatus: (msg) => {
@@ -1086,6 +1096,19 @@ const scannerController = new BarcodeScannerController(scannerVideoEl, {
   onError: (errMsg) => {
     stopScannerUI();
     setScannerStatus(errMsg, "error");
+  },
+  onCapabilities: (caps) => {
+    cameraProBarEl.hidden = false;
+    cameraZoomWrapEl.hidden = !caps.canZoom;
+    if (caps.canZoom) {
+      cameraZoomSliderEl.min = String(caps.zoomMin);
+      cameraZoomSliderEl.max = String(caps.zoomMax);
+      cameraZoomSliderEl.step = String(caps.zoomStep);
+      cameraZoomSliderEl.value = String(caps.zoomValue);
+      cameraZoomValEl.textContent = `${Number(caps.zoomValue).toFixed(1)}x`;
+    }
+    torchBtn.hidden = !caps.canTorch;
+    switchCameraBtn.hidden = !caps.canSwitch;
   }
 });
 
@@ -1156,7 +1179,9 @@ async function lookupAndRenderBarcode(rawCode) {
   `;
 
   try {
-    const product = await fetchProductByBarcode(code);
+    const product = await fetchProductByBarcode(code, {
+      onProgress: (msg) => setScannerStatus(msg, "neutral")
+    });
     state.lastScanProduct = product;
     state.lastScanFilter = "all";
     state.lastScanAnalysis = product.ingredientsText
@@ -1193,6 +1218,47 @@ startCameraBtn.addEventListener("click", async () => {
 stopCameraBtn.addEventListener("click", () => {
   stopScannerUI();
   setScannerStatus("Kamera durduruldu.", "neutral");
+});
+
+cameraZoomSliderEl?.addEventListener("input", (e) => {
+  const val = Number(e.target.value);
+  cameraZoomValEl.textContent = `${val.toFixed(1)}x`;
+  scannerController.setZoom(val);
+});
+
+refocusBtn?.addEventListener("click", () => {
+  scannerController.triggerRefocus();
+  setScannerStatus("Kamera yeniden odaklanıyor...", "neutral");
+});
+
+torchBtn?.addEventListener("click", async () => {
+  const on = await scannerController.toggleTorch();
+  torchBtn.setAttribute("aria-pressed", String(on));
+});
+
+switchCameraBtn?.addEventListener("click", async () => {
+  setScannerStatus("Kamera değiştiriliyor...", "neutral");
+  await scannerController.switchCamera();
+});
+
+// Ekrana dokunarak odaklama (Tap-to-Focus)
+scannerViewportEl?.addEventListener("click", (e) => {
+  if (!scannerViewportEl.classList.contains("is-streaming")) return;
+  const rect = scannerViewportEl.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+  if (focusRingEl) {
+    focusRingEl.style.left = `${x}px`;
+    focusRingEl.style.top = `${y}px`;
+    focusRingEl.hidden = false;
+    focusRingEl.style.animation = "none";
+    void focusRingEl.offsetWidth;
+    focusRingEl.style.animation = "";
+    setTimeout(() => {
+      focusRingEl.hidden = true;
+    }, 650);
+  }
+  scannerController.triggerRefocus();
 });
 
 barcodeFileInputEl.addEventListener("change", async (e) => {
