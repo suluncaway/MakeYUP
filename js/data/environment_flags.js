@@ -155,10 +155,11 @@ export const ENV_FLAGS = {
     note: "Benzofenon türevi; resif etkisi için öncelikli izlenen UV filtreleri arasında.",
     aliases: ["sulisobenzone"]
   },
-  "zinc oxide": {
+  // Yalnızca nano form işaretlenir; normal (nano olmayan) çinko oksit mineral filtre olarak resif dostu kabul edilir.
+  "zinc oxide (nano)": {
     type: "reef",
     note: "Nano formu tartışmalı; kaplamasız nano çinko oksit için resif verisi çelişkili.",
-    pattern: "zinc oxide.*\\(nano\\)|nano.*zinc oxide"
+    pattern: "zinc oxide.*\\bnano\\b|\\bnano\\b.*zinc oxide"
   },
 
   // ---------- Kalıcı / biyobirikimli (persistent) ----------

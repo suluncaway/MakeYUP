@@ -9,9 +9,13 @@ import { EU_ALLERGENS, EU_BANNED, EU_RESTRICTED } from "./data/eu_regulatory.js"
 import { ENV_FLAGS } from "./data/environment_flags.js";
 
 function clean(str) {
-  return String(str || "")
+  return String(str ?? "")
+    .replace(/\b\d+(?:[.,]\d+)?\s*%/g, " ") // "Retinol 1%" → "retinol"
+    .replace(/İ/g, "i")
     .toLowerCase()
+    .replace(/[\u200B-\u200D\u2060\uFEFF\u00AD]/g, "")
     .replace(/[^a-z0-9/\-\s]/g, " ")
+    .replace(/\b(methyl|ethyl|propyl|butyl|isobutyl|isopropyl|benzyl|phenyl|pentyl)[\s-]+paraben\b/g, "$1paraben")
     .replace(/\s+/g, " ")
     .trim();
 }

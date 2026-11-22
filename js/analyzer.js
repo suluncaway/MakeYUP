@@ -46,7 +46,8 @@ export async function loadCosingIndex() {
   try {
     const res = await fetch("js/data/cosing_index.json");
     if (res.ok) {
-      cosingMap = await res.json();
+      const data = await res.json();
+      if (data && typeof data === "object" && !Array.isArray(data)) cosingMap = data;
     }
   } catch {
     // sessizce yerel motorla devam et
@@ -54,11 +55,23 @@ export async function loadCosingIndex() {
 }
 
 export function getCosingMeta(inciName) {
-  const raw = String(inciName || "").trim().toLowerCase();
-  const norm = normalizeText(inciName);
+  const raw = String(inciName || "").replace(ZERO_WIDTH_RE, "").trim().toLowerCase();
+  const norm = normalizeText(raw);
   if (!norm && !raw) return null;
-  const hit = cosingMap[raw] || cosingMap[norm];
-  if (!hit) return null;
+  const own = (k) => (k && Object.prototype.hasOwnProperty.call(cosingMap, k) ? cosingMap[k] : null);
+  // "Aqua (Water)" → "aqua (water)", "aqua", "water"; "Water/Aqua/Eau" → "water", "aqua", "eau"
+  const candidates = [
+    raw,
+    norm,
+    ...[...raw.matchAll(/\(([^)]+)\)/g)].map((m) => normalizeText(m[1])),
+    ...norm.split("/").map((p) => p.trim())
+  ];
+  let hit = null;
+  for (const c of candidates) {
+    hit = own(c);
+    if (hit) break;
+  }
+  if (!hit || typeof hit !== "object") return null;
   const funcsTr = Array.isArray(hit.fn)
     ? hit.fn.map((f) => COSING_FUNC_TR[f.toLowerCase()] || f)
     : [];
@@ -73,47 +86,109 @@ export function getCosingMeta(inciName) {
 
 /**
  * Metni eşleştirme için normalize eder.
+ * Türkçe büyük "İ" / "I" harfleri doğru küçültülür ("GLİSERİN" → "gliserin").
  */
 export function normalizeText(str) {
-  return String(str || "")
+  return String(str ?? "")
+    .replace(/İ/g, "i")
     .toLowerCase()
+    .replace(/̇/g, "")
     .replace(/\(.*?\)/g, " ") // parantez içlerini ayır
     .replace(/[^a-z0-9çğıöşü/\-\s]/gi, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
 
+const TR_FOLD = { ç: "c", ğ: "g", ı: "i", ö: "o", ş: "s", ü: "u" };
+const PERCENT_RE = /\b\d+(?:[.,]\d+)?\s*%/g;
+const ZERO_WIDTH_RE = /[\u200B-\u200D\u2060\uFEFF\u00AD]/g;
+// "Methyl Paraben" / "Propyl-Paraben" → "methylparaben" / "propylparaben"
+const SPACED_PARABEN_RE = /\b(methyl|ethyl|propyl|butyl|isobutyl|isopropyl|benzyl|phenyl|pentyl)[\s-]+paraben\b/g;
+
+/** Eşleştirme anahtarı: yüzdeler atılır, Türkçe harfler katlanır ("jojoba yağı" = "jojoba yagi"). */
+function matchKey(str) {
+  return normalizeText(String(str ?? "").replace(ZERO_WIDTH_RE, "").replace(PERCENT_RE, " "))
+    .replace(/[çğıöşü]/g, (c) => TR_FOLD[c])
+    .replace(SPACED_PARABEN_RE, "$1paraben");
+}
+
+/** Kısmi eşleşme için: parantez içi korunur, tüm noktalama boşluğa çevrilir (kelime sınırı kontrolü için). */
+function wordKey(str) {
+  return String(str ?? "")
+    .replace(ZERO_WIDTH_RE, "")
+    .replace(PERCENT_RE, " ")
+    .replace(/İ/g, "i")
+    .toLowerCase()
+    .replace(/̇/g, "")
+    .replace(/[çğıöşü]/g, (c) => TR_FOLD[c])
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(SPACED_PARABEN_RE, "$1paraben")
+    .trim();
+}
+
+// Tek başına çok genel olan ve başka maddelerin adının parçası olabilen terimler yalnızca
+// birebir eşleşmede kullanılır ("Behenyl Alcohol" ≠ "Alcohol Denat.", "Rose Flower Water" ≠ "Aqua").
+const PARTIAL_BLOCKLIST = new Set(["alcohol", "aqua", "water", "eau", "su", "peg", "aroma", "koku", "silicone"]);
+
+// "Milk Thistle", "Honeysuckle", "Coconut Milk" gibi bitkisel adlar hayvansal sayılmamalı.
+const PLANT_CONTEXT_RE =
+  /(milk\s*thistle|milkweed|honeysuckle|silk\s*tree|(coconut|cocos nucifera|oat|avena sativa|almond|prunus amygdalus|soy|soybean|glycine soja|rice|oryza sativa|cashew|hemp|cannabis sativa|plant|vegetable)\s*\)?\s*milk|vegan|synthetic|plant|vegetable|phyto)/i;
+
+let EXACT_INDEX = null;
+let PARTIAL_TERMS = null;
+
+function buildIngredientIndex() {
+  EXACT_INDEX = new Map();
+  const terms = [];
+  for (const item of INGREDIENTS_DB) {
+    for (const name of [item.inci, ...(item.aliases || [])]) {
+      const k = matchKey(name);
+      if (k && !EXACT_INDEX.has(k)) EXACT_INDEX.set(k, item);
+      const w = wordKey(name);
+      if (w.length >= 4 && !PARTIAL_BLOCKLIST.has(w)) terms.push({ term: ` ${w} `, item });
+    }
+  }
+  // En uzun (en özgül) terim önce denensin
+  terms.sort((a, b) => b.term.length - a.term.length);
+  PARTIAL_TERMS = terms;
+}
+
 /**
  * Tek bir içerik adını veritabanında arar.
  */
 export function findIngredient(rawName) {
-  const cleaned = rawName.trim();
-  const norm = normalizeText(cleaned);
+  const cleaned = String(rawName ?? "").trim();
+  const norm = matchKey(cleaned);
   if (!norm) return null;
+  if (!EXACT_INDEX) buildIngredientIndex();
 
   // 1. Tam INCI veya alias eşleşmesi
-  for (const item of INGREDIENTS_DB) {
-    if (normalizeText(item.inci) === norm) return item;
-    if (item.aliases.some((alias) => normalizeText(alias) === norm)) {
+  const exact = EXACT_INDEX.get(norm);
+  if (exact) return exact;
+
+  // 1b. "Water/Aqua/Eau" veya "CI 77491 (Iron Oxides)" gibi bileşik yazımların parçaları
+  const parts = [...norm.split("/"), ...[...cleaned.matchAll(/\(([^)]+)\)/g)].map((m) => m[1])];
+  for (const part of parts) {
+    const hit = EXACT_INDEX.get(matchKey(part));
+    if (hit) return hit;
+  }
+
+  const rawLower = cleaned.replace(ZERO_WIDTH_RE, "").replace(/İ/g, "i").toLowerCase().replace(SPACED_PARABEN_RE, "$1paraben");
+  const plantLike = PLANT_CONTEXT_RE.test(rawLower);
+
+  // 2. Kısmi (tam kelime) eşleşme — örn. "Sodium Hyaluronate Crosspolymer", "Hydrolyzed Collagen".
+  // PEG/PPG türevleri kendi ailesinde sınıflandırılır ("PEG-40 Hydrogenated Castor Oil" ≠ hint yağı).
+  if (!/^(peg|ppg)[-\s]?\d/.test(rawLower)) {
+    const hay = ` ${wordKey(cleaned)} `;
+    for (const { term, item } of PARTIAL_TERMS) {
+      if (!hay.includes(term)) continue;
+      if (plantLike && item.vegan === false) continue;
       return item;
     }
   }
 
-  // 2. Kısmi eşleşme (örn: "CI 75470 / Carmine" veya "Water (Aqua)")
-  const rawLower = cleaned.toLowerCase();
-  for (const item of INGREDIENTS_DB) {
-    const inciLower = item.inci.toLowerCase();
-    if (rawLower.includes(inciLower) && inciLower.length >= 4) return item;
-    for (const alias of item.aliases) {
-      const aliasLower = alias.toLowerCase();
-      if (aliasLower.length >= 4 && rawLower.includes(aliasLower)) {
-        return item;
-      }
-    }
-  }
-
   // 3. Akıllı INCI Desen, CI Pigment & Kimyasal Aile Tanıma (hiçbir gerçek bileşen analizsiz kalmaz)
-  return classifyByPattern(cleaned, rawLower);
+  return classifyByPattern(cleaned, rawLower, plantLike);
 }
 
 /**
@@ -135,9 +210,9 @@ function inferOriginForKnown(item) {
  * kozmetik kimya kurallarına ve CI pigment kodlarına göre eksiksiz sınıflandırır
  * ve ne kaynaklı olduğunu (Bitkisel / Mineral / Sentetik / Hayvansal / Biyoteknolojik) yazar.
  */
-function classifyByPattern(rawName, lower) {
-  // 1. Hayvansal kaynaklı anahtar kelimeler
-  if (/(beeswax|cera alba|cera flava|honey|\bmel\b|propolis|royal jelly)/.test(lower)) {
+function classifyByPattern(rawName, lower, plantLike = false) {
+  // 1. Hayvansal kaynaklı anahtar kelimeler (bitkisel bağlamda — "Milk Thistle", "Honeysuckle" — atlanır)
+  if (!plantLike && /(beeswax|cera alba|cera flava|honey|\bmel\b|propolis|royal jelly)/.test(lower)) {
     return {
       inci: rawName,
       nameTr: `${rawName} (Arı Ürünü)`,
@@ -151,7 +226,7 @@ function classifyByPattern(rawName, lower) {
       tags: ["Hayvansal Kaynaklı", "Vegan Değil"]
     };
   }
-  if (/(carmine|ci\s*75470|cochineal|carminic)/.test(lower)) {
+  if (!plantLike && /(carmine|ci\s*75470|cochineal|carminic)/.test(lower)) {
     return {
       inci: rawName,
       nameTr: `${rawName} (Karmin Pigmenti)`,
@@ -165,7 +240,10 @@ function classifyByPattern(rawName, lower) {
       tags: ["Hayvansal Kaynaklı", "Vegan Değil"]
     };
   }
-  if (/(lanolin|tallow|collagen|elastin|keratin|silk|serica|snail|chitosan|guanine|ci\s*75170|shellac|milk|lactose|\blac\b|emu oil|ostrich|placenta|caviar)/.test(lower)) {
+  if (
+    !plantLike &&
+    /(lanolin|tallow|collagen|elastin|keratin|silk|serica|snail|guanine|ci\s*75170|shellac|milk|lactose|\blac\b|emu oil|ostrich|placenta|caviar|gelatin|casein|whey|\bovum\b|egg yolk|albumen|\bpearl\b|mink oil|castoreum|civet|ambergris|shark liver|cod liver|fish oil|chondroitin|spongilla)/.test(lower)
+  ) {
     return {
       inci: rawName,
       nameTr: `${rawName} (Hayvansal Türev)`,
@@ -429,31 +507,71 @@ function classifyByPattern(rawName, lower) {
 function isNoiseToken(token) {
   const t = token.trim();
   if (!t || t.length < 2) return true;
-  if (/^[\d\s.%+\-*/#()\[\]:;]+$/.test(t)) return true; // saf sayı / yüzde ("2", "100%", "+/-")
-  if (/^(f\.?\s*i\.?\s*l\.?|code\s*f\.?\s*i\.?\s*l|[a-z]\d{5,}\/\d+|may\s*contain|peut\s*contenir|ingredients?|ingrédients?|içindekiler|contains?)$/i.test(t)) {
+  if (/^[\d\s.,%+\-*/#()\[\]:;]+$/.test(t)) return true; // saf sayı / yüzde ("2", "100%", "+/-")
+  if (/^(f\.?\s*i\.?\s*l\.?|code\s*f\.?\s*i\.?\s*l|[a-z]\d{5,}\/\d+|may\s*contain|peut\s*contenir|ingredients?|ingrédients?|içindekiler|i̇çindekiler|contains?)$/i.test(t)) {
     return true;
   }
   return false;
+}
+
+// Etiket önekleri ("Ingredients:", "İçindekiler:") ve "may contain / +/-" ayraçları
+const PREFIX_RE = /^\s*(?:ingredients?|ingrédients?|ingredientes|inci|içindekiler|i̇çindekiler|İçindekiler|bileşenler|composition)\s*(?:\/\s*[^\s:]+\s*)?[:：]\s*/i;
+const MAY_CONTAIN_RE = /\[\s*\+\s*\/\s*-\s*\]\s*:?|\(\s*\+\s*\/\s*-\s*\)\s*:?|\+\s*\/\s*-\s*:?|\b(?:may\s+contain|peut\s+contenir|puede\s+contener|kann\s+enthalten|içerebilir)\b\s*:?/gi;
+
+/** Parantez dışındaki virgül / noktalı virgül / satır sonu / madde işaretlerinden böler. */
+function splitTopLevel(text) {
+  const out = [];
+  let depth = 0;
+  let cur = "";
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === "(") depth++;
+    else if (ch === ")") depth = Math.max(0, depth - 1);
+    // "1,3-Butylene Glycol", "1,2-Hexanediol": rakamlar arasındaki virgül ayraç değildir
+    const numericComma = ch === "," && /\d/.test(text[i - 1] || "") && /\d/.test(text[i + 1] || "");
+    if (depth === 0 && !numericComma && /[,;\n\r•·|]/.test(ch)) {
+      out.push(cur);
+      cur = "";
+    } else {
+      cur += ch;
+    }
+  }
+  out.push(cur);
+  // Kapanmamış parantez listenin geri kalanını yutmasın: güvenli yedek bölme
+  if (depth > 0) return text.split(/[,;\n\r•·|]+/);
+  return out;
 }
 
 /**
  * Virgül, noktalı virgül veya yeni satırla ayrılmış INCI metnini temiz listeye çevirir.
  */
 export function parseInciString(input) {
-  const rawArr = Array.isArray(input)
-    ? input.map((s) => String(s))
-    : String(input || "").split(/[,;\n•]+/);
+  let rawArr;
+  if (Array.isArray(input)) {
+    rawArr = input.filter((s) => s !== null && s !== undefined && typeof s !== "object").map((s) => String(s));
+  } else {
+    const text = String(input ?? "")
+      .replace(ZERO_WIDTH_RE, "")
+      .replace(PREFIX_RE, "")
+      .replace(MAY_CONTAIN_RE, ",");
+    rawArr = splitTopLevel(text);
+  }
 
   const cleaned = [];
   const seen = new Set();
 
   for (let part of rawArr) {
     part = part
-      .replace(/^(ingredients?|ingrédients?|içindekiler|may contain|peut contenir|\+\/-)\s*:?\s*/i, "")
+      .replace(ZERO_WIDTH_RE, "")
+      .replace(PREFIX_RE, "")
+      .replace(/^(may contain|peut contenir|\+\/-)\s*:?\s*/i, "")
       .replace(/\[?\+\/-\]?/g, "")
-      .replace(/^[\s*•\-–.]+|[\s*•\-–.]+$/g, "")
+      .replace(/^[\s*•·\-–—.:\[\]]+|[\s*•·\-–—.:\[\]]+$/g, "")
       .replace(/\s+/g, " ")
       .trim();
+    // Dengesiz tek parantezleri temizle: "Eau)" → "Eau", "(Water" → "Water"
+    if (!part.includes("(") && part.endsWith(")")) part = part.slice(0, -1).trim();
+    if (!part.includes(")") && part.startsWith("(")) part = part.slice(1).trim();
 
     if (isNoiseToken(part)) continue;
     const key = part.toLowerCase();
@@ -462,6 +580,21 @@ export function parseInciString(input) {
     cleaned.push(part);
   }
   return cleaned;
+}
+
+function roundPercentages(counts) {
+  const keys = ["safe", "moderate", "high", "unknown"];
+  const out = { safe: 0, moderate: 0, high: 0, unknown: 0 };
+  if (!counts.total) return out;
+  const raw = keys.map((k) => ({ k, v: (counts[k] / counts.total) * 100 }));
+  let used = 0;
+  for (const r of raw) {
+    out[r.k] = Math.floor(r.v);
+    used += out[r.k];
+  }
+  raw.sort((a, b) => (b.v - Math.floor(b.v)) - (a.v - Math.floor(a.v)));
+  for (let i = 0; used < 100 && i < raw.length; i++, used++) out[raw[i].k] += 1;
+  return out;
 }
 
 /**
@@ -610,10 +743,9 @@ export function analyzeIngredients(input) {
   }
 
   // Yüzdelik dağılım
-  const safePct = counts.total ? Math.round((counts.safe / counts.total) * 100) : 0;
-  const moderatePct = counts.total ? Math.round((counts.moderate / counts.total) * 100) : 0;
-  const highPct = counts.total ? Math.round((counts.high / counts.total) * 100) : 0;
-  const unknownPct = counts.total ? Math.max(0, 100 - safePct - moderatePct - highPct) : 0;
+  // En büyük kalan yöntemiyle yuvarlanır: toplam her zaman tam 100 olur ve
+  // bilinmeyen madde yokken "unknown" yuvarlama artığıyla %1 görünmez.
+  const { safe: safePct, moderate: moderatePct, high: highPct, unknown: unknownPct } = roundPercentages(counts);
 
   // Öne çıkan görsel bulgular (highlights)
   const highlights = [];

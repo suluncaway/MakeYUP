@@ -20,7 +20,7 @@ export const PREGNANCY_FLAGS = {
   "trifarotene": { lvl: "avoid", note: "Reçeteli retinoid; hamilelikte kullanılmaması önerilir." },
 
   // --- Salisilatlar / BHA ---
-  "salicylic acid": { lvl: "caution", note: "Düşük oranlı (≤%2) durulanan ürünler genelde kabul görür; yüksek oran ve peelingler önerilmez.", aliases: ["bha", "beta hydroxy acid"] },
+  "salicylic acid": { lvl: "caution", note: "Düşük oranlı (≤%2) durulanan ürünler genelde kabul görür; yüksek oran ve peelingler önerilmez.", aliases: ["beta hydroxy acid"] },
   "capryloyl salicylic acid": { lvl: "caution", note: "Salisilik asit türevi (LHA); yüksek oran/geniş alan kullanımında dikkat.", aliases: ["lha"] },
   "betaine salicylate": { lvl: "caution", note: "Salisilat türevi; yüksek oran veya geniş alan kullanımında dikkat." },
   "methyl salicylate": { lvl: "caution", note: "Kış yeşili yağının ana bileşeni; salisilat emilimi nedeniyle hamilelikte dikkat.", aliases: ["wintergreen oil"] },

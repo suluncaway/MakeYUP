@@ -11,7 +11,7 @@
  */
 
 import { PRODUCTS_DATA } from "./data/products.js";
-import { loadHfCatalog } from "./globalApi.js";
+import { loadHfCatalog, fetchJsonWithTimeout, NETWORK_TIMEOUT_MS } from "./globalApi.js";
 
 export const LOCAL_BARCODES = {
   "8690001001011": "rare-soft-pinch-blush",
@@ -47,23 +47,18 @@ export function cleanBarcode(raw) {
   return String(raw || "").replace(/[^0-9]/g, "").trim();
 }
 
-async function fetchWithTimeout(url, timeoutMs = 6500) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
+function safeProgress(onProgress, msg) {
   try {
-    return await fetch(url, {
-      headers: { Accept: "application/json" },
-      signal: controller.signal
-    });
-  } finally {
-    clearTimeout(timer);
+    onProgress?.(msg);
+  } catch {
+    // ilerleme geri çağrısındaki hata sorguyu bozmasın
   }
 }
 
 /**
  * Birden fazla açık kozmetik ve ürün veritabanında sırayla barkod sorgular.
  */
-export async function fetchProductByBarcode(rawCode, { onProgress } = {}) {
+export async function fetchProductByBarcode(rawCode, { onProgress, timeoutMs = NETWORK_TIMEOUT_MS } = {}) {
   const code = cleanBarcode(rawCode);
   if (code.length < 6) {
     throw new Error("Geçerli bir barkod numarası girin (en az 6 rakam, örn: EAN-13).");
@@ -73,7 +68,7 @@ export async function fetchProductByBarcode(rawCode, { onProgress } = {}) {
   const localId = LOCAL_BARCODES[code];
   if (localId) {
     const prod = PRODUCTS_DATA.find((p) => p.id === localId);
-    if (prod) {
+    if (prod && Array.isArray(prod.ingredients)) {
       return {
         source: "local",
         sourceLabel: "MakeYUP Katalog",
@@ -93,7 +88,7 @@ export async function fetchProductByBarcode(rawCode, { onProgress } = {}) {
 
   // 1.5. Hugging Face (744+ GTIN barkodlu tam INCI arşivi) kontrolü
   try {
-    const hfRows = await loadHfCatalog();
+    const hfRows = (await loadHfCatalog()) || [];
     const trimmedCode = code.replace(/^0+/, "");
     const hfHit = hfRows.find(
       (r) => Array.isArray(r.g) && r.g.some((g) => String(g).replace(/^0+/, "") === trimmedCode)
@@ -106,8 +101,8 @@ export async function fetchProductByBarcode(rawCode, { onProgress } = {}) {
         source: "openbeautyfacts",
         sourceLabel: "Doğrulanmış INCI Arşivi",
         barcode: code,
-        name: hfHit.s ? `${hfHit.n} (${hfHit.s})` : hfHit.n,
-        brand: hfHit.b,
+        name: hfHit.s ? `${hfHit.n} (${hfHit.s})` : hfHit.n || `Barkodlu Ürün (${code})`,
+        brand: hfHit.b || "Bilinmeyen Marka",
         categoryLabel: hfHit.c || "Kozmetik & Bakım",
         image,
         description: "Barkod ile doğrulanmış tam INCI arşivinden bulundu ve analiz edildi.",
@@ -140,21 +135,29 @@ export async function fetchProductByBarcode(rawCode, { onProgress } = {}) {
     }
   ];
 
+  // Çevrimdışıysa canlı kaynakları hiç denemeden anlaşılır bir hata ver
+  if (typeof navigator !== "undefined" && navigator && navigator.onLine === false) {
+    throw new Error(
+      `İnternet bağlantısı yok. Barkod (${code}) yerel katalogda bulunamadı; bağlantı gelince tekrar deneyin veya INCI listesini "İçerik Analizörü" sekmesine yapıştırın.`
+    );
+  }
+
+  let lastError = null;
   for (const src of openFactsSources) {
-    onProgress?.(`${src.label.replace(" (Canlı)", "")} sorgulanıyor...`);
+    safeProgress(onProgress, `${src.label.replace(" (Canlı)", "")} sorgulanıyor...`);
     try {
-      const response = await fetchWithTimeout(src.url, 6500);
-      if (response.ok) {
-        const json = await response.json();
-        if (json.status === 1 && json.product) {
+      const json = await fetchJsonWithTimeout(src.url, { timeoutMs, label: src.label.replace(" (Canlı)", "") });
+      {
+        if (json && json.status === 1 && json.product && typeof json.product === "object") {
           const p = json.product;
           const name =
             p.product_name_tr || p.product_name || p.product_name_en || `Barkodlu Ürün (${code})`;
-          const brand = p.brands ? p.brands.split(",")[0].trim() : "Bilinmeyen Marka";
+          const brand = (typeof p.brands === "string" && p.brands.split(",")[0].trim()) || "Bilinmeyen Marka";
           const image = p.image_front_url || p.image_url || "assets/images/foundation.jpg";
 
-          let ingredientsText =
-            p.ingredients_text_en || p.ingredients_text || p.ingredients_text_tr || "";
+          let ingredientsText = String(
+            p.ingredients_text_en || p.ingredients_text || p.ingredients_text_tr || ""
+          );
 
           if (!ingredientsText && Array.isArray(p.ingredients) && p.ingredients.length > 0) {
             ingredientsText = p.ingredients
@@ -163,7 +166,7 @@ export async function fetchProductByBarcode(rawCode, { onProgress } = {}) {
               .join(", ");
           }
 
-          const labels = Array.isArray(p.labels_tags) ? p.labels_tags : [];
+          const labels = Array.isArray(p.labels_tags) ? p.labels_tags.filter((l) => typeof l === "string") : [];
           const isCrueltyFree = labels.some(
             (l) => l.includes("cruelty-free") || l.includes("not-tested-on-animals")
           );
@@ -174,7 +177,8 @@ export async function fetchProductByBarcode(rawCode, { onProgress } = {}) {
             barcode: code,
             name,
             brand,
-            categoryLabel: p.categories ? p.categories.split(",")[0].trim() : "Kozmetik Ürünü",
+            categoryLabel:
+              (typeof p.categories === "string" && p.categories.split(",")[0].trim()) || "Kozmetik Ürünü",
             image,
             description: ingredientsText
               ? `${src.label} veritabanından barkod ile canlı çekildi ve MakeYUP motoruyla analiz edildi.`
@@ -186,21 +190,21 @@ export async function fetchProductByBarcode(rawCode, { onProgress } = {}) {
           };
         }
       }
-    } catch {
+    } catch (err) {
+      lastError = err;
       // Sonraki veritabanına geç
     }
   }
 
   // 3. Yedek Küresel Barkod Kaynağı: UPCitemdb (ürün adı/marka/fotoğraf için)
-  onProgress?.("UPCitemdb yedek veritabanı sorgulanıyor...");
+  safeProgress(onProgress, "UPCitemdb yedek veritabanı sorgulanıyor...");
   try {
-    const upcRes = await fetchWithTimeout(
+    const upcJson = await fetchJsonWithTimeout(
       `https://api.upcitemdb.com/prod/trial/lookup?upc=${encodeURIComponent(code)}`,
-      5000
+      { timeoutMs: Math.min(timeoutMs, 5000), label: "UPCitemdb" }
     );
-    if (upcRes.ok) {
-      const upcJson = await upcRes.json();
-      const item = Array.isArray(upcJson.items) ? upcJson.items[0] : null;
+    {
+      const item = upcJson && Array.isArray(upcJson.items) ? upcJson.items[0] : null;
       if (item && item.title) {
         return {
           source: "openbeautyfacts",
@@ -219,10 +223,17 @@ export async function fetchProductByBarcode(rawCode, { onProgress } = {}) {
         };
       }
     }
-  } catch {
+  } catch (err) {
+    lastError = lastError || err;
     // CORS veya limit durumunda sessizce geç
   }
 
+  // Tüm kaynaklar ağ/zaman aşımı hatası verdiyse "bulunamadı" yerine bağlantı sorununu söyle
+  if (lastError && ["offline", "timeout", "network"].includes(lastError.code)) {
+    throw new Error(
+      `Barkod (${code}) sorgulanamadı: ${lastError.message} Ürün arkasındaki INCI listesini "İçerik Analizörü" sekmesine yapıştırarak çevrimdışı analiz edebilirsiniz.`
+    );
+  }
   throw new Error(
     `Barkod (${code}) bağlı 4 farklı küresel veritabanında bulunamadı. Ürün arkasındaki INCI listesini "İçerik Analizörü" sekmesine yapıştırarak anında analiz edebilirsiniz.`
   );
@@ -564,8 +575,9 @@ export class BarcodeScannerController {
  * Kullanıcının yüklediği bir fotoğraftan barkod okur.
  */
 export async function scanBarcodeFromImageFile(file) {
-  const imageUrl = URL.createObjectURL(file);
+  let imageUrl = null;
   try {
+    imageUrl = URL.createObjectURL(file);
     if ("BarcodeDetector" in window) {
       const bitmap = await createImageBitmap(file);
       const detector = new window.BarcodeDetector({
@@ -592,6 +604,6 @@ export async function scanBarcodeFromImageFile(file) {
       "Fotoğraftaki barkod okunamadı. Daha net ve aydınlık bir barkod fotoğrafı deneyebilir veya numarayı elle girebilirsiniz."
     );
   } finally {
-    URL.revokeObjectURL(imageUrl);
+    if (imageUrl) URL.revokeObjectURL(imageUrl);
   }
 }
