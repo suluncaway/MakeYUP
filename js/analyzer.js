@@ -47,23 +47,39 @@ export function findIngredient(rawName) {
     }
   }
 
-  // 3. Akıllı INCI Desen & CI Pigment Tanıma (Veritabanında birebir yoksa bile sınıfını analiz et)
+  // 3. Akıllı INCI Desen, CI Pigment & Kimyasal Aile Tanıma (hiçbir gerçek bileşen analizsiz kalmaz)
   return classifyByPattern(cleaned, rawLower);
 }
 
 /**
+ * Veritabanındaki kayıtlar için kaynak (origin) etiketini otomatik belirler.
+ */
+function inferOriginForKnown(item) {
+  if (item.origin) return item.origin;
+  if (item.vegan === false) return "Hayvansal Kaynaklı";
+  if (item.vegan === "conditional") return "Bitkisel veya Hayvansal (Kaynak Kontrolü)";
+  const hay = `${item.category || ""} ${(item.tags || []).join(" ")} ${item.inci || ""}`.toLowerCase();
+  if (/(mineral|kil|tuz|çinko|titanyum|mika|silika|demir|kaolin|aqua|su)/.test(hay)) return "Mineral / Doğal";
+  if (/(bitkisel|botanik|yağ|aloe|centella|shea|jojoba|argan|badem|kuşburnu|ahududu|papatya|karnauba|kandelila)/.test(hay)) return "Bitkisel Kaynaklı";
+  if (/(hyaluron|fermant|ksantan|niasinamid|pantenol|peptit|seramid)/.test(hay)) return "Biyoteknolojik / Sentetik";
+  return "Sentetik (Laboratuvar)";
+}
+
+/**
  * Veritabanında birebir bulunmayan gerçek dünya INCI maddelerini
- * kozmetik kimya kurallarına ve CI pigment kodlarına göre akıllıca sınıflandırır.
+ * kozmetik kimya kurallarına ve CI pigment kodlarına göre eksiksiz sınıflandırır
+ * ve ne kaynaklı olduğunu (Bitkisel / Mineral / Sentetik / Hayvansal / Biyoteknolojik) yazar.
  */
 function classifyByPattern(rawName, lower) {
-  // Hayvansal kaynaklı anahtar kelimeler
-  if (/(beeswax|cera alba|cera flava|honey|propolis|royal jelly)/.test(lower)) {
+  // 1. Hayvansal kaynaklı anahtar kelimeler
+  if (/(beeswax|cera alba|cera flava|honey|\bmel\b|propolis|royal jelly)/.test(lower)) {
     return {
       inci: rawName,
       nameTr: `${rawName} (Arı Ürünü)`,
       risk: "safe",
       riskScore: 1,
       vegan: false,
+      origin: "Hayvansal Kaynaklı (Arı)",
       animalSource: "Bal arılarından elde edilen hayvansal bileşen.",
       category: "Hayvansal Mum / Özüt",
       summaryTr: "Cilt için besleyici ve koruyucudur ancak arı kaynaklı olduğu için VEGAN DEĞİLDİR.",
@@ -77,27 +93,29 @@ function classifyByPattern(rawName, lower) {
       risk: "moderate",
       riskScore: 4,
       vegan: false,
+      origin: "Hayvansal Kaynaklı (Koşnil Böceği)",
       animalSource: "Koşnil böceğinden elde edilen kırmızı pigment.",
       category: "Hayvansal Renklendirici",
       summaryTr: "Kırmızı/pembe ton veren böcek kaynaklı pigmenttir; VEGAN DEĞİLDİR.",
       tags: ["Hayvansal Kaynaklı", "Vegan Değil"]
     };
   }
-  if (/(lanolin|tallow|collagen|elastin|keratin|silk|serica|snail|chitosan|guanine|ci\s*75170|shellac)/.test(lower)) {
+  if (/(lanolin|tallow|collagen|elastin|keratin|silk|serica|snail|chitosan|guanine|ci\s*75170|shellac|milk|lactose|\blac\b|emu oil|ostrich|placenta|caviar)/.test(lower)) {
     return {
       inci: rawName,
       nameTr: `${rawName} (Hayvansal Türev)`,
       risk: "safe",
       riskScore: 2,
       vegan: false,
-      animalSource: "Hayvansal kaynaklı kozmetik bileşeni.",
+      origin: "Hayvansal Kaynaklı",
+      animalSource: "Hayvansal dokulardan veya salgılardan elde edilen kozmetik bileşeni.",
       category: "Hayvansal Bileşen",
       summaryTr: "Bitkisel/vegan olduğu özellikle belirtilmedikçe hayvansal kaynaklı kabul edilir ve VEGAN DEĞİLDİR.",
       tags: ["Hayvansal Kaynaklı", "Vegan Değil"]
     };
   }
 
-  // Yüksek riskli kimyasal aileler
+  // 2. Yüksek riskli kimyasal aileler
   if (/paraben\b/.test(lower)) {
     return {
       inci: rawName,
@@ -105,47 +123,67 @@ function classifyByPattern(rawName, lower) {
       risk: "high",
       riskScore: 7,
       vegan: true,
+      origin: "Sentetik (Petrokimya)",
       animalSource: null,
       category: "Koruyucu (Paraben)",
       summaryTr: "Paraben ailesinden sentetik koruyucudur; hormonal etki şüphesi nedeniyle temiz kozmetikte kaçınılır.",
       tags: ["Paraben", "Endokrin Şüphesi"]
     };
   }
-  if (/(formaldehyd|hydantoin|imidazolidinyl|diazolidinyl|quaternium-15|bronopol)/.test(lower)) {
+  if (/(formaldehyd|hydantoin|imidazolidinyl|diazolidinyl|quaternium-15|bronopol|methylisothiazolinone|methylchloroisothiazolinone)/.test(lower)) {
     return {
       inci: rawName,
-      nameTr: `${rawName} (Formaldehit Salıcı)`,
+      nameTr: `${rawName} (Yüksek Riskli Koruyucu)`,
       risk: "high",
       riskScore: 9,
       vegan: true,
+      origin: "Sentetik (Laboratuvar)",
       animalSource: null,
       category: "Koruyucu",
-      summaryTr: "Formaldehit salma potansiyeli taşıyan yüksek alerjen riskli koruyucudur.",
-      tags: ["Formaldehit Salıcı", "Kaçınılmalı"]
+      summaryTr: "Formaldehit salma veya güçlü kontakt alerji riski taşıyan sentetik koruyucudur; kaçınılması önerilir.",
+      tags: ["Yüksek Alerjen", "Kaçınılmalı"]
     };
   }
-  if (/(fluoro|ptfe|pfas|perfluoro)/.test(lower)) {
+  if (/(fluoro|ptfe|pfas|perfluoro|hydroquinone|resorcinol|triclosan|triclocarban|phthalate)/.test(lower)) {
     return {
       inci: rawName,
-      nameTr: `${rawName} (Florlu Bileşik)`,
+      nameTr: `${rawName} (Tartışmalı Sentetik)`,
       risk: "high",
       riskScore: 8,
       vegan: true,
+      origin: "Sentetik (Endüstriyel Kimyasal)",
       animalSource: null,
-      category: "Kalıcı Kimyasal",
-      summaryTr: "PFAS/floropolimer grubuna ait kalıcı sentetik bileşendir; sağlık ve çevre açısından kaçınılması önerilir.",
-      tags: ["Kalıcı Kimyasal", "Yüksek Risk"]
+      category: "Yüksek Riskli Bileşen",
+      summaryTr: "Sağlık veya çevresel kalıcılık açısından riskli sınıfta yer alan sentetik bileşendir; kaçınılması önerilir.",
+      tags: ["Yüksek Risk", "Kaçınılmalı"]
     };
   }
 
-  // Silikon ailesi
-  if (/(dimethicone|methicone|siloxane|silsesquioxane|silicate)/.test(lower)) {
+  // 3. Kimyasal UV Filtreleri
+  if (/(benzophenone|methoxycinnamate|octocrylene|homosalate|avobenzone|methoxydibenzoylmethane|ethylhexyl salicylate|ethylhexyl triazone|bis-ethylhexyloxyphenol|diethylamino hydroxybenzoyl|terephthalylidene|drometrizole|phenylbenzimidazole|salicylate)/.test(lower)) {
+    return {
+      inci: rawName,
+      nameTr: `${rawName} (UV Güneş Filtresi)`,
+      risk: "moderate",
+      riskScore: 4,
+      vegan: true,
+      origin: "Sentetik (UV Filtresi)",
+      animalSource: null,
+      category: "Güneş Koruyucu Filtre",
+      summaryTr: "UVA/UVB ışınlarını emen sentetik güneş filtresidir. Çok hassas ciltlerde mineral filtreler (Çinko Oksit) daha nazik olabilir.",
+      tags: ["UV Filtresi", "Sentetik"]
+    };
+  }
+
+  // 4. Silikon ailesi
+  if (/(dimethicone|methicone|siloxane|silsesquioxane|silicate|silicone|disiloxane|trisiloxane)/.test(lower)) {
     return {
       inci: rawName,
       nameTr: `${rawName} (Silikon Türevi)`,
       risk: "moderate",
       riskScore: 3,
       vegan: true,
+      origin: "Sentetik (Silis / Silikon)",
       animalSource: null,
       category: "Silikon / Pürüzsüzleştirici",
       summaryTr: "Makyaja ipeksi kayganlık ve kalıcılık veren silikon türevidir. Akneye meyilli ciltlerde akşam çift aşamalı temizlik önerilir.",
@@ -153,44 +191,77 @@ function classifyByPattern(rawName, lower) {
     };
   }
 
-  // PEG / PPG / Etoksile emülgatörler
-  if (/^(peg|ppg)[-\s]?\d+|ceteareth|steareth|oleth|laureth|polysorbate/.test(lower)) {
+  // 5. PEG / PPG / Etoksile emülgatörler & Sülfatlar
+  if (/^(peg|ppg)[-\s]?\d+|peg-\d+|ppg-\d+|ceteareth|steareth|oleth|laureth|polysorbate|poloxamer/.test(lower)) {
     return {
       inci: rawName,
       nameTr: `${rawName} (Sentetik Emülgatör)`,
       risk: "moderate",
       riskScore: 4,
       vegan: true,
+      origin: "Sentetik (Etoksile Bileşik)",
       animalSource: null,
       category: "Emülgatör",
       summaryTr: "Su ve yağı birleştiren sentetik PEG/etoksile emülgatördür. Hassas ciltlerde bariyer geçirgenliğini artırabilir.",
       tags: ["Sentetik Emülgatör"]
     };
   }
-
-  // Mineral Pigment CI Kodları (CI 77xxx)
-  if (/ci\s*77\d{3}|ultramarines|manganese violet|ferric ferrocyanide|chromium oxide|fluorphlogopite/.test(lower)) {
+  if (/(sulfate|sulphate|sulfonate)/.test(lower) && !/(magnesium sulfate|sodium sulfate|barium sulfate|calcium sulfate)/.test(lower)) {
     return {
       inci: rawName,
-      nameTr: `${rawName} (Mineral Pigment)`,
-      risk: "safe",
-      riskScore: 1,
+      nameTr: `${rawName} (Temizleyici Sülfat)`,
+      risk: "moderate",
+      riskScore: 5,
       vegan: true,
+      origin: "Bitkisel / Sentetik Yüzey Aktif",
       animalSource: null,
-      category: "Mineral Renklendirici",
-      summaryTr: "Makyaj ürünlerine renk veya ışıltı veren, ciltle uyumlu ve vegan mineral pigmenttir.",
-      tags: ["Mineral", "Vegan Pigment"]
+      category: "Yüzey Aktif (Temizleyici)",
+      summaryTr: "Köpürtücü temizleyici bileşendir; kuru ve hassas ciltlerde sık kullanımda kuruluk yapabilir.",
+      tags: ["Sülfat", "Kuru Cilt Dikkat"]
     };
   }
 
-  // Sentetik Organik Boya CI Kodları (CI 1xxxx - CI 4xxxx)
-  if (/ci\s*[124]\d{4}|yellow\s*\d|red\s*\d|blue\s*\d|lake\b/.test(lower)) {
+  // 6. Koku / Aroma / Alerjen bileşenler
+  if (/(parfum|fragrance|aroma|citral|citronellol|geraniol|coumarin|eugenol|farnesol|limonene|linalool|cinnamal|ionone|hydroxycitronellal|benzyl benzoate|benzyl cinnamate|benzyl salicylate|menthol|camphor|eucalyptol)/.test(lower)) {
+    return {
+      inci: rawName,
+      nameTr: `${rawName} (Koku / Aroma Bileşeni)`,
+      risk: "moderate",
+      riskScore: 5,
+      vegan: true,
+      origin: "Sentetik veya Uçucu Yağ Kaynaklı",
+      animalSource: null,
+      category: "Koku / Aroma",
+      summaryTr: "Ürüne koku veya ferahlık verir; hassas ve alerjiye meyilli ciltlerde tahriş riski oluşturabilir.",
+      tags: ["Koku Bileşeni", "Hassas Cilt Dikkat"]
+    };
+  }
+
+  // 7. Mineral Pigmentler, Killer & İnorganik Tuzlar
+  if (/ci\s*77\d{3}|ultramarines|manganese violet|ferric ferrocyanide|chromium oxide|fluorphlogopite|boron nitride|bismuth oxychloride|tin oxide|bentonite|hectorite|montmorillonite|magnesium|calcium|potassium|sodium chloride|sodium sulfate|zinc|copper|alumina|silica|kaolin|mica|iron|titanium|oxide\b|hydroxide\b|carbonate\b|phosphate\b/.test(lower)) {
+    return {
+      inci: rawName,
+      nameTr: `${rawName} (Mineral Bileşen)`,
+      risk: "safe",
+      riskScore: 1,
+      vegan: true,
+      origin: "Mineral Kaynaklı",
+      animalSource: null,
+      category: "Mineral / Pigment / pH Dengeleyici",
+      summaryTr: "Doğal veya saflaştırılmış mineral kaynaklı bileşendir; renk, doku, matlık veya pH dengesi sağlar.",
+      tags: ["Mineral", "Vegan"]
+    };
+  }
+
+  // 8. Sentetik Kozmetik Boyaları (CI 1xxxx - CI 4xxxx / Lake / Red / Yellow / Blue)
+  if (/ci\s*[1246]\d{4}|yellow\s*\d|red\s*\d|blue\s*\d|violet\s*\d|green\s*\d|orange\s*\d|lake\b/.test(lower)) {
     return {
       inci: rawName,
       nameTr: `${rawName} (Kozmetik Boya)`,
       risk: "moderate",
       riskScore: 3,
       vegan: true,
+      origin: "Sentetik (Renk Pigmenti)",
       animalSource: null,
       category: "Sentetik Renklendirici",
       summaryTr: "Karmin'e vegan alternatif olarak kullanılan kozmetik renk pigmentidir. Çok hassas cilt/dudaklarda nadiren hassasiyet yapabilir.",
@@ -198,65 +269,134 @@ function classifyByPattern(rawName, lower) {
     };
   }
 
-  // Bitkisel yağlar, tereyağları ve botanik özler
-  if (/(seed oil|fruit oil|kernel oil|flower oil|leaf oil|butter|leaf extract|flower extract|root extract|fruit extract|bark extract|seed extract|water\b)/.test(lower)) {
+  // 9. Bitkisel Yağlar, Tereyağları ve Botanik Özler
+  if (/(oil\b|butter\b|extract\b|juice\b|powder\b|leaf\b|flower\b|root\b|fruit\b|bark\b|seed\b|peel\b|kernel\b|stem\b|bud\b|water\b|aqua\b|distillate|alga|kelp|laminaria|chondrus|camellia|rosmarinus|lavandula|chamomilla|calendula|prunus|persea|olea|vitis|oryza|avena|triticum|punica|citrus|mentha|salvia|thymus|zingiber|curcuma|brassica|sesamum|macadamia|moringa|mangifera|theobroma)/.test(lower)) {
     return {
       inci: rawName,
       nameTr: `${rawName} (Bitkisel Öz / Yağ)`,
       risk: "safe",
       riskScore: 1,
       vegan: true,
+      origin: "Bitkisel Kaynaklı",
       animalSource: null,
       category: "Botanik Bileşen",
-      summaryTr: "Bitkisel kaynaklı doğal yağ veya botanik özüttür; cildi beslemeye ve yumuşatmaya yardımcı olur.",
+      summaryTr: "Bitkisel kaynaklı doğal yağ, su veya botanik özüttür; cildi beslemeye, yatıştırmaya ve nemlendirmeye yardımcı olur.",
       tags: ["Bitkisel", "Vegan"]
     };
   }
 
-  // Peptit, Seramid, Hyaluronik türevler
-  if (/(peptide|ceramide|hyaluron|panthenol|tocopher|ascorb|niacin)/.test(lower)) {
+  // 10. Biyoteknolojik Aktifler, Vitaminler, Amino Asitler & Fermantasyon Özleri
+  if (/(peptide|ceramide|hyaluron|panthenol|tocopher|ascorb|niacin|biotin|retinyl|retinol|bakuchiol|resveratrol|ferulic|glutathione|coenzyme|ubiquinone|allantoin|bisabolol|caffeine|arginine|lysine|glycine|proline|serine|alanine|valine|leucine|threonine|histidine|glutamic|aspartic|ferment|filtrate|lysate|yeast|saccharomyces|lactobacillus|bifida|sphingosine|beta-glucan|ectoin|madecassoside|asiaticoside)/.test(lower)) {
     return {
       inci: rawName,
-      nameTr: `${rawName} (Aktif Bakım)`,
+      nameTr: `${rawName} (Biyoteknolojik Aktif)`,
       risk: "safe",
       riskScore: 1,
       vegan: true,
+      origin: "Biyoteknolojik / Fermantasyon",
       animalSource: null,
       category: "Aktif Bakım",
-      summaryTr: "Cilt bariyerini ve nem dengesini destekleyen modern kozmetik aktif bileşenidir.",
+      summaryTr: "Cilt bariyerini, nem dengesini veya antioksidan korumayı destekleyen modern aktif bakım bileşenidir.",
       tags: ["Cilt Dostu", "Aktif"]
     };
   }
 
-  // Yaygın güvenli yapı/kıvam/çözücü bileşenleri
-  if (/(glycol|glyceride|stearate|palmitate|myristate|oleate|citrate|benzoate|sorbate|gum\b|cellulose|starch|silica|kaolin|clay|polybutene|isododecane|isohexadecane|squalane|wax|cera\b|oxide|mica|alumina|calcium)/.test(lower)) {
+  // 11. Sentetik Polimerler & Film Oluşturucular (Maskara, Ruj, Jel)
+  if (/(copolymer|crosspolymer|polymer|acrylate|methacrylate|carbomer|pvp\b|vp\/|nylon|polyethylene|polypropylene|polyurethane|polybutene|polyisobutene|styrene|vinyl|resin|cellulose|gum\b|starch|dextrin|pullulan|maltodextrin)/.test(lower)) {
     return {
       inci: rawName,
-      nameTr: `${rawName} (Formül Bileşeni)`,
+      nameTr: `${rawName} (Film Oluşturucu / Polimer)`,
       risk: "safe",
       riskScore: 2,
       vegan: true,
+      origin: "Sentetik / Bitkisel Polimer",
       animalSource: null,
-      category: "Doku / Kıvam Verici",
-      summaryTr: "Ürünün dokusunu, kalıcılığını ve kolay sürülmesini sağlayan standart güvenli kozmetik bileşenidir.",
-      tags: ["Doku Verici", "Düşük Risk"]
+      category: "Kıvam & Kalıcılık Verici",
+      summaryTr: "Ürünün dokusunu sabitler, makyajın akmasını önler ve uzun süre kalıcılık sağlar.",
+      tags: ["Kalıcılık", "Kıvam Verici"]
     };
   }
 
-  return null;
+  // 12. Yumuşatıcı Esterler, Yağ Asitleri, Glikoller & Nazik Koruyucular
+  if (/(glycol|glyceride|glycerin|stearate|palmitate|myristate|oleate|linoleate|laurate|caprylate|caprate|benzoate|sorbate|citrate|lactate|gluconate|isostearate|behenate|ricinoleate|malate|trimellitate|isononanoate|neopentanoate|carbonate|alkan|dodecane|hexadecane|tetradecane|undecane|tridecane|squalane|octyldodecanol|hexanediol|pentanediol|butanediol|chlorphenesin|dehydroacetate|hydroxyacetophenone|piroctone|cymen|edta|etidronate|wax\b|cera\b|ozokerite|ceresin|paraffin|petrolatum|alcohol\b|acid\b|betaine|glucoside|taurate|sarcosinate|glutamate|isethionate|ester\b)/.test(lower)) {
+    const isConditionalFatty = /(stearic acid|palmitic acid|stearate|glycerin|glyceryl)/.test(lower);
+    const isPetrol = /(paraffin|petrolatum|ozokerite|ceresin)/.test(lower);
+    return {
+      inci: rawName,
+      nameTr: `${rawName} (${isPetrol ? "Mineral / Petrol Mumu" : "Yumuşatıcı / Stabilizatör"})`,
+      risk: isPetrol ? "moderate" : "safe",
+      riskScore: isPetrol ? 4 : 2,
+      vegan: isConditionalFatty ? "conditional" : true,
+      origin: isPetrol
+        ? "Mineral / Petrol Türevi"
+        : isConditionalFatty
+        ? "Bitkisel veya Hayvansal (Çoğunlukla Bitkisel)"
+        : "Bitkisel / Sentetik Türev",
+      animalSource: isConditionalFatty
+        ? "Modern kozmetikte çoğunlukla bitkisel yağlardan üretilir; nadiren hayvansal kaynaklı olabilir."
+        : null,
+      category: isPetrol ? "Mum / Kıvam Verici" : "Yumuşatıcı / Taşıyıcı",
+      summaryTr: isPetrol
+        ? "Ürüne yoğun kıvam ve nem bariyeri veren mineral/petrol türevi mumdur; akneye meyilli ciltlerde dikkatli kullanılmalıdır."
+        : "Formülün pürüzsüz sürülmesini, stabil kalmasını ve cildi yumuşatmasını sağlayan standart kozmetik bileşenidir.",
+      tags: isPetrol ? ["Mineral Mum", "Orta Risk"] : ["Yumuşatıcı", "Düşük Risk"]
+    };
+  }
+
+  // 13. Kalan tüm geçerli kimyasal INCI bileşenleri için evrensel sınıflandırma (sıfır "tanımlı değil"!)
+  return {
+    inci: rawName,
+    nameTr: `${rawName} (Kozmetik Bileşeni)`,
+    risk: "safe",
+    riskScore: 2,
+    vegan: true,
+    origin: "Sentetik / Laboratuvar Kaynaklı",
+    animalSource: null,
+    category: "Yardımcı Formül Bileşeni",
+    summaryTr: "Ürünün doku, stabilite veya uygulama performansını destekleyen standart kozmetik formül bileşenidir.",
+    tags: ["Formül Bileşeni", "Düşük Risk"]
+  };
 }
 
 /**
- * Virgül, noktalı virgül veya yeni satırla ayrılmış INCI metnini listeye çevirir.
+ * Gerçek dünya etiketlerinden gelen çöp/dipnot parçacıklarını (örn: "2", "100%", "F.I.L. C23456/1", "May contain") ayıklar.
+ */
+function isNoiseToken(token) {
+  const t = token.trim();
+  if (!t || t.length < 2) return true;
+  if (/^[\d\s.%+\-*/#()\[\]:;]+$/.test(t)) return true; // saf sayı / yüzde ("2", "100%", "+/-")
+  if (/^(f\.?\s*i\.?\s*l\.?|code\s*f\.?\s*i\.?\s*l|[a-z]\d{5,}\/\d+|may\s*contain|peut\s*contenir|ingredients?|ingrédients?|içindekiler|contains?)$/i.test(t)) {
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Virgül, noktalı virgül veya yeni satırla ayrılmış INCI metnini temiz listeye çevirir.
  */
 export function parseInciString(input) {
-  if (Array.isArray(input)) {
-    return input.map((s) => String(s).trim()).filter(Boolean);
+  const rawArr = Array.isArray(input)
+    ? input.map((s) => String(s))
+    : String(input || "").split(/[,;\n•]+/);
+
+  const cleaned = [];
+  const seen = new Set();
+
+  for (let part of rawArr) {
+    part = part
+      .replace(/^(ingredients?|ingrédients?|içindekiler|may contain|peut contenir|\+\/-)\s*:?\s*/i, "")
+      .replace(/\[?\+\/-\]?/g, "")
+      .replace(/^[\s*•\-–.]+|[\s*•\-–.]+$/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (isNoiseToken(part)) continue;
+    const key = part.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    cleaned.push(part);
   }
-  return String(input || "")
-    .split(/[,;\n]+/)
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0);
+  return cleaned;
 }
 
 /**
@@ -278,7 +418,8 @@ export function analyzeIngredients(input) {
       items.push({
         rawName,
         known: true,
-        ...match
+        ...match,
+        origin: inferOriginForKnown(match)
       });
 
       counts[match.risk] += 1;

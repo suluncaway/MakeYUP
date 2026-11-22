@@ -135,6 +135,10 @@ function renderIngredientCard(item) {
     veganBadge = `<span class="tag tag-check">? Kaynak Kontrolü</span>`;
   }
 
+  const originBadge = item.origin
+    ? `<span class="tag tag-neutral">Kaynak: ${escapeHtml(item.origin)}</span>`
+    : "";
+
   return `
     <article class="inci-item risk-${escapeHtml(item.risk)}">
       <div class="inci-item-top">
@@ -145,6 +149,7 @@ function renderIngredientCard(item) {
         <div class="inci-badges">
           <span class="tag ${rInfo.cls}">${rInfo.text}</span>
           ${veganBadge}
+          ${originBadge}
         </div>
       </div>
       <p class="inci-summary">${escapeHtml(item.summaryTr)}</p>
