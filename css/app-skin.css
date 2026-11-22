@@ -205,4 +205,8 @@ main > section.view-section { height: auto; min-height: calc(var(--h, 1) * 100sv
 
 /* the app's phone bar sits under the kit's sheet menu */
 .mobile-bottom-nav { z-index: 9; }
-.mobile-nav-item { min-height: 48px; }
+.mobile-nav-item { min-height: 48px; font-size: 13px; font-weight: 500; }
+.mobile-nav-scan-pill { background: var(--action); color: var(--action-ink); box-shadow: none; border-color: var(--bg-surface); }
+.mobile-nav-scan.is-active .mobile-nav-scan-pill { box-shadow: none; }
+/* the hero's report window ends above the phone bar */
+@media (max-width: 768px) { .hero { padding-bottom: calc(var(--hpadb) + 72px); } }
