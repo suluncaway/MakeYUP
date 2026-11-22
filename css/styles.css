@@ -846,33 +846,51 @@ a:focus-visible {
   transform: scale(1.045);
 }
 
-/* Open Beauty Facts API Ürün Fotoğrafları — Stüdyo Packshot Çerçevesi */
+/* Open Beauty Facts / Open Products Facts Ürün Fotoğrafları — Stüdyo Packshot Çerçevesi */
 .card-media.is-api-photo {
+  aspect-ratio: 5 / 4;
+  min-height: 268px;
+  padding: 4.35rem 1.4rem 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: radial-gradient(
-      circle at 50% 42%,
-      var(--bg-studio) 0%,
+      ellipse 78% 68% at 50% 56%,
+      #ffffff 0%,
+      var(--bg-studio) 58%,
       var(--bg-studio-end) 100%
     );
-  padding: 1.45rem 1.35rem 1.15rem;
-  display: grid;
-  place-items: center;
   border-bottom: 1px solid var(--border-subtle);
 }
 
+[data-theme="dark"] .card-media.is-api-photo {
+  background: radial-gradient(
+      ellipse 76% 66% at 50% 56%,
+      #2e2722 0%,
+      var(--bg-studio) 52%,
+      var(--bg-studio-end) 100%
+    );
+}
+
 .card-media.is-api-photo img {
-  width: 100%;
-  height: 100%;
+  width: auto;
+  height: auto;
+  max-width: min(82%, 220px);
+  max-height: min(100%, 196px);
   object-fit: contain;
   object-position: center;
-  filter: drop-shadow(0 12px 20px rgba(29, 25, 22, 0.13));
+  border-radius: 10px;
+  image-rendering: auto;
+  filter: drop-shadow(0 12px 22px rgba(29, 25, 22, 0.14));
 }
 
 [data-theme="dark"] .card-media.is-api-photo img {
-  filter: drop-shadow(0 14px 24px rgba(0, 0, 0, 0.45));
+  box-shadow: 0 0 0 1px rgba(247, 242, 236, 0.08);
+  filter: drop-shadow(0 14px 26px rgba(0, 0, 0, 0.52));
 }
 
 .product-card:hover .card-media.is-api-photo img {
-  transform: scale(1.055) translateY(-2px);
+  transform: scale(1.04) translateY(-2px);
 }
 
 .card-overlay-top {
@@ -1173,9 +1191,30 @@ a:focus-visible {
 .report-thumb {
   width: 120px;
   height: 120px;
+  padding: 0.4rem;
   border-radius: var(--radius-md);
-  object-fit: cover;
+  object-fit: contain;
+  object-position: center;
+  background: radial-gradient(
+      circle at 50% 48%,
+      #ffffff 0%,
+      var(--bg-studio) 62%,
+      var(--bg-studio-end) 100%
+    );
   border: 1px solid var(--border-subtle);
+  box-shadow: 0 6px 16px rgba(29, 25, 22, 0.08);
+  image-rendering: auto;
+}
+
+[data-theme="dark"] .report-thumb {
+  background: radial-gradient(
+      circle at 50% 48%,
+      #2e2722 0%,
+      var(--bg-studio) 58%,
+      var(--bg-studio-end) 100%
+    );
+  border-color: var(--border-strong);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.42);
 }
 
 .report-verdict h3 {
@@ -2227,11 +2266,26 @@ a:focus-visible {
 }
 
 /* Modal / Karşılaştırma API Fotoğrafı Desteği */
-.report-thumb.is-api-photo,
-.compare-head img.is-api-photo {
-  background: radial-gradient(circle at 50% 42%, var(--bg-studio) 0%, var(--bg-studio-end) 100%);
-  padding: 0.45rem;
+.compare-head img {
+  background: radial-gradient(
+      circle at 50% 48%,
+      #ffffff 0%,
+      var(--bg-studio) 62%,
+      var(--bg-studio-end) 100%
+    );
+  padding: 0.3rem;
   object-fit: contain;
+  border: 1px solid var(--border-subtle);
+}
+
+[data-theme="dark"] .compare-head img {
+  background: radial-gradient(
+      circle at 50% 48%,
+      #2e2722 0%,
+      var(--bg-studio) 58%,
+      var(--bg-studio-end) 100%
+    );
+  border-color: var(--border-strong);
 }
 
 /* ============================================================
@@ -2396,4 +2450,378 @@ a:focus-visible {
   font-size: 0.74rem;
   line-height: 1.4;
   color: var(--text-secondary);
+}
+
+/* ============================================================
+   Özel Mobil Uygulama Tasarımı (<= 768px)
+   Native Alt Gezinme Çubuğu, Bottom-Sheet Modallar, Yatay Kaydırmalı Filtreler
+   ============================================================ */
+.mobile-bottom-nav {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  body {
+    padding-bottom: calc(5.2rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .container {
+    width: calc(100% - 1.5rem);
+  }
+
+  /* Kompakt Tek Satır Mobil Üst Bar */
+  .site-header {
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .header-inner {
+    min-height: 58px;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    padding-block: 0.4rem;
+  }
+
+  .main-nav {
+    display: none;
+  }
+
+  .brand-mark {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+  }
+
+  .brand-name {
+    font-size: 1.1rem;
+  }
+
+  .brand-sub {
+    display: none;
+  }
+
+  /* Sabit Cam Efektli Alt Gezinme Çubuğu */
+  .mobile-bottom-nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 60;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    align-items: end;
+    padding: 0.4rem 0.35rem calc(0.45rem + env(safe-area-inset-bottom, 0px));
+    background: color-mix(in srgb, var(--bg-surface) 92%, transparent);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-top: 1px solid var(--border-subtle);
+    box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.08);
+  }
+
+  [data-theme="dark"] .mobile-bottom-nav {
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.45);
+  }
+
+  .mobile-nav-item {
+    border: 0;
+    background: transparent;
+    color: var(--text-muted);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.18rem;
+    padding: 0.25rem 0.15rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: color 0.18s ease, transform 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mobile-nav-item.is-active {
+    color: var(--accent);
+  }
+
+  .mobile-nav-item:active {
+    transform: scale(0.94);
+  }
+
+  .mobile-nav-icon {
+    font-size: 1.2rem;
+    line-height: 1;
+  }
+
+  /* Ortadaki Öne Çıkan Barkod Tarama Butonu */
+  .mobile-nav-scan {
+    position: relative;
+    margin-top: -1.15rem;
+  }
+
+  .mobile-nav-scan-pill {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), #c97388);
+    color: #fff;
+    display: grid;
+    place-items: center;
+    font-size: 1.3rem;
+    box-shadow: 0 8px 20px rgba(166, 77, 99, 0.38);
+    border: 3px solid var(--bg-surface);
+  }
+
+  .mobile-nav-scan.is-active .mobile-nav-scan-pill {
+    box-shadow: 0 10px 24px rgba(166, 77, 99, 0.55);
+    transform: translateY(-2px);
+  }
+
+  /* Kompakt Mobil Hero (ürünlere çok daha hızlı erişim) */
+  .hero {
+    padding: 1.4rem 0 1.2rem;
+  }
+
+  .hero-grid {
+    gap: 1.2rem;
+  }
+
+  .hero h1 {
+    font-size: 1.85rem;
+    margin-bottom: 0.55rem;
+  }
+
+  .hero-lead {
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+  }
+
+  .hero-quick-search {
+    padding: 0.3rem;
+  }
+
+  .hero-quick-search .btn {
+    padding: 0.6rem 1rem;
+    font-size: 0.84rem;
+  }
+
+  .hero-stats {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    margin-top: 0.9rem;
+  }
+
+  .hero-stat {
+    padding: 0.6rem 0.5rem;
+  }
+
+  .hero-stat strong {
+    font-size: 0.98rem;
+  }
+
+  .hero-stat span {
+    font-size: 0.68rem;
+  }
+
+  .hero-cta {
+    display: none;
+  }
+
+  .hero-legend {
+    display: none;
+  }
+
+  /* Bölüm Başlıkları & Yatay Kaydırmalı Mobil Filtre Şeritleri */
+  .view-section {
+    padding: 0.6rem 0 2.5rem;
+  }
+
+  .section-head {
+    margin-bottom: 0.9rem;
+  }
+
+  .section-head h2 {
+    font-size: 1.35rem;
+  }
+
+  .section-sub {
+    font-size: 0.84rem;
+  }
+
+  .brand-strip {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 0.35rem;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .brand-strip::-webkit-scrollbar {
+    display: none;
+  }
+
+  .brand-pill {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+    padding: 0.4rem 0.78rem 0.4rem 0.42rem;
+    font-size: 0.8rem;
+  }
+
+  .filter-panel {
+    padding: 0.8rem;
+    gap: 0.7rem;
+    margin-bottom: 1.15rem;
+  }
+
+  .filter-groups {
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+
+  .filter-group {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 0.2rem;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .filter-group::-webkit-scrollbar {
+    display: none;
+  }
+
+  .chip {
+    flex: 0 0 auto;
+    padding: 0.45rem 0.85rem;
+    font-size: 0.8rem;
+  }
+
+  /* Mobil Marka Bölümleri & Ürün Kartları */
+  .brand-section {
+    padding: 0.95rem;
+    border-radius: 18px;
+  }
+
+  .brand-section-header {
+    padding-bottom: 0.8rem;
+    margin-bottom: 0.95rem;
+  }
+
+  .brand-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    font-size: 0.88rem;
+  }
+
+  .brand-section-identity h3 {
+    font-size: 1.12rem;
+  }
+
+  .product-grid {
+    gap: 1rem;
+  }
+
+  .card-media.is-api-photo {
+    aspect-ratio: 16 / 11;
+    min-height: 210px;
+    padding: 3.6rem 1.2rem 1rem;
+  }
+
+  .card-media.is-api-photo img {
+    max-height: 155px;
+  }
+
+  .card-body {
+    padding: 1rem;
+    gap: 0.7rem;
+  }
+
+  .card-actions .btn {
+    min-height: 42px;
+  }
+
+  /* Mobil Barkod Tarayıcı (Dikey / Portre Dostu) */
+  .scanner-viewport {
+    aspect-ratio: 4 / 3;
+  }
+
+  .scanner-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .scanner-controls .btn {
+    min-height: 44px;
+    font-size: 0.84rem;
+    padding-inline: 0.7rem;
+  }
+
+  .barcode-manual-row {
+    grid-template-columns: 1fr auto;
+  }
+
+  /* Mobil Bottom-Sheet Modallar */
+  .modal-dialog,
+  .modal-wide {
+    width: 100%;
+    max-width: 100%;
+    max-height: 92dvh;
+    margin: auto 0 0 0;
+    border-radius: 24px 24px 0 0;
+    transform: translateY(28px);
+  }
+
+  .modal-dialog[open] {
+    transform: translateY(0);
+  }
+
+  @starting-style {
+    .modal-dialog[open] {
+      transform: translateY(28px);
+    }
+  }
+
+  .modal-surface {
+    border-radius: 24px 24px 0 0;
+    max-height: 92dvh;
+  }
+
+  .modal-surface::before {
+    content: "";
+    display: block;
+    width: 42px;
+    height: 4px;
+    border-radius: 99px;
+    background: var(--border-strong);
+    margin: 0.65rem auto 0;
+    flex-shrink: 0;
+  }
+
+  .modal-header {
+    padding: 0.8rem 1.15rem 0.9rem;
+  }
+
+  .modal-title {
+    font-size: 1.18rem;
+  }
+
+  .modal-body {
+    padding: 1rem 1.15rem calc(1.5rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .skin-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .stats-strip {
+    gap: 0.5rem;
+  }
+
+  /* Yukarı Çık Butonunu Alt Barın Üstüne Al */
+  .scroll-top-btn {
+    bottom: calc(5.3rem + env(safe-area-inset-bottom, 0px));
+    right: 1rem;
+    width: 42px;
+    height: 42px;
+  }
 }

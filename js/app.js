@@ -936,7 +936,7 @@ function switchView(viewName) {
   }
   state.activeView = viewName;
 
-  document.querySelectorAll(".nav-tab").forEach((btn) => {
+  document.querySelectorAll(".nav-tab, .mobile-nav-item").forEach((btn) => {
     btn.classList.toggle("is-active", btn.dataset.view === viewName);
   });
 
@@ -967,8 +967,13 @@ themeToggleBtn.addEventListener("click", () => {
 // ============================================================
 // Olay Dinleyicileri (Event Listeners)
 // ============================================================
-document.querySelectorAll(".nav-tab").forEach((btn) => {
-  btn.addEventListener("click", () => switchView(btn.dataset.view));
+document.querySelectorAll(".nav-tab, .mobile-nav-item").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    switchView(btn.dataset.view);
+    if (window.innerWidth <= 768) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  });
 });
 
 document.querySelectorAll("[data-jump]").forEach((btn) => {
@@ -1473,10 +1478,15 @@ function renderGlobalResults() {
     : String(visible.length);
 
   globalCountEl.textContent = state.globalLoading && state.globalItems.length === 0
-    ? "Dünya veritabanı taranıyor..."
-    : `${totalFormatted} küresel ürün · ${visible.length} yüklendi`;
+    ? "Ürünler yükleniyor..."
+    : state.globalTotalCount > visible.length
+    ? `${visible.length} ürün gösteriliyor (${totalFormatted} arşiv kaydı · kaydırdıkça yüklenir)`
+    : `${visible.length} ürün gösteriliyor`;
 
   globalLoadMoreWrapEl.hidden = !state.globalHasMore;
+  if (state.globalHasMore && !state.globalLoading) {
+    globalLoadMoreBtn.textContent = `Sonraki 100 Ürünü Yükle (${visible.length} / ${totalFormatted})`;
+  }
 
   if (state.globalLoading && state.globalItems.length === 0) {
     globalResultsContainerEl.innerHTML = renderSkeletonGrid(6);
@@ -1576,7 +1586,7 @@ async function fetchGlobalCatalog({ append = false } = {}) {
       brand: state.globalBrand,
       categoryTerm: catObj?.term || "",
       page: nextPage,
-      pageSize: 60
+      pageSize: 100
     });
 
     const enrichedBatch = res.products.map((p) => {
@@ -1724,7 +1734,7 @@ if ("IntersectionObserver" in window) {
         }
       }
     },
-    { rootMargin: "400px" }
+    { rootMargin: "800px" }
   );
   infiniteObserver.observe(globalLoadMoreWrapEl);
 }

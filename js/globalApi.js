@@ -173,7 +173,13 @@ function normalizeApiProduct(raw) {
     `Kozmetik Ürünü (${code})`;
 
   const brandRaw = raw.brands ? raw.brands.split(",")[0].trim() : "Diğer Marka";
-  const image = raw.image_front_small_url || raw.image_front_url || raw.image_url || "";
+  // Yüksek çözünürlüklü görseli (image_front_url / image_url) önceliklendir — 100/200px thumbnail'i büyütüp pikselleştirme!
+  let image = [raw.image_front_url, raw.image_url, raw.image_front_small_url]
+    .find((u) => typeof u === "string" && u.trim().length > 0)
+    ?.trim() || "";
+  if (image && /\.(100|200)\.(jpe?g|png|webp)(\?.*)?$/i.test(image)) {
+    image = image.replace(/\.(100|200)\.(jpe?g|png|webp)(\?.*)?$/i, ".400.$2$3");
+  }
 
   let ingredientsText =
     raw.ingredients_text_en || raw.ingredients_text || raw.ingredients_text_tr || "";
@@ -247,7 +253,7 @@ export async function searchGlobalProducts({
   brand = "",
   categoryTerm = "",
   page = 1,
-  pageSize = 60
+  pageSize = 100
 } = {}) {
   const translatedQuery = translateTurkishQuery(query);
   const combinedTerms = [translatedQuery, brand, categoryTerm]

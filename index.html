@@ -604,6 +604,30 @@
   <!-- Yukarı Çık Butonu -->
   <button type="button" id="scrollTopBtn" class="scroll-top-btn" hidden aria-label="Yukarı çık" title="Yukarı çık">↑</button>
 
+  <!-- Mobil Sabit Alt Gezinme Çubuğu (Yalnızca Mobil Ekranlarda Görünür) -->
+  <nav class="mobile-bottom-nav" aria-label="Mobil Alt Menü">
+    <button type="button" class="mobile-nav-item is-active" data-view="global">
+      <span class="mobile-nav-icon" aria-hidden="true">🌍</span>
+      <span>Keşfet</span>
+    </button>
+    <button type="button" class="mobile-nav-item" data-view="brands">
+      <span class="mobile-nav-icon" aria-hidden="true">🏷️</span>
+      <span>Markalar</span>
+    </button>
+    <button type="button" class="mobile-nav-item mobile-nav-scan" data-view="scanner" aria-label="Barkod Tara">
+      <span class="mobile-nav-scan-pill" aria-hidden="true">📷</span>
+      <span>Tara</span>
+    </button>
+    <button type="button" class="mobile-nav-item" data-view="analyzer">
+      <span class="mobile-nav-icon" aria-hidden="true">🧪</span>
+      <span>Analiz</span>
+    </button>
+    <button type="button" class="mobile-nav-item" data-view="glossary">
+      <span class="mobile-nav-icon" aria-hidden="true">📖</span>
+      <span>Sözlük</span>
+    </button>
+  </nav>
+
   <script type="module" src="js/app.js"></script>
 </body>
 </html>
