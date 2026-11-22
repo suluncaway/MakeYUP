@@ -1,3 +1,5 @@
+<p align="center"><img src="assets/brand/logo.svg" alt="MakeYUP" width="260" /></p>
+
 # MakeYUP — Makyaj İçerik, Sağlık & Vegan Analiz Rehberi
 
 ![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)
