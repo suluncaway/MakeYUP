@@ -329,5 +329,166 @@ export const PRODUCTS_DATA = [
       "Propylparaben",
       "BHT"
     ]
+  },
+
+  // ========================
+  // GOLDEN ROSE
+  // ========================
+  {
+    id: "golden-rose-velvet-matte",
+    brandId: "golden-rose",
+    brand: "Golden Rose",
+    name: "Velvet Matte Ruj",
+    category: "dudak",
+    categoryLabel: "Dudak · Mat Ruj",
+    image: "assets/images/lipstick.jpg",
+    description:
+      "Türkiye'de en çok tercih edilen kadife mat ruj serisi. E vitamini ve yumuşatıcı yağlar içerir; bazı tonlarda balmumu ve parfüm bulunabilir.",
+    crueltyFree: true,
+    skinTypes: ["Normal"],
+    ingredients: [
+      "Ricinus Communis Seed Oil",
+      "Caprylic/Capric Triglyceride",
+      "Cera Alba",
+      "Copernicia Cerifera Cera",
+      "Silica",
+      "Tocopherol",
+      "Iron Oxides",
+      "Titanium Dioxide",
+      "CI 15850",
+      "Parfum"
+    ]
+  },
+  {
+    id: "golden-rose-hd-foundation",
+    brandId: "golden-rose",
+    brand: "Golden Rose",
+    name: "Total Cover 2in1 Fondöten & Kapatıcı",
+    category: "yuz",
+    categoryLabel: "Yüz · Fondöten & Kapatıcı",
+    image: "assets/images/foundation.jpg",
+    description:
+      "Yüksek kapatıcılıklı, yağsız ve vegan formüllü fondöten & kapatıcı. Silikon ve fenoksietanol içerdiğinden akneye meyilli ciltlerde iyi temizlenmelidir.",
+    crueltyFree: true,
+    skinTypes: ["Karma", "Yağlı"],
+    ingredients: [
+      "Aqua",
+      "Cyclopentasiloxane",
+      "Dimethicone",
+      "Titanium Dioxide",
+      "Iron Oxides",
+      "Propanediol",
+      "Silica",
+      "Tocopherol",
+      "Phenoxyethanol",
+      "Ethylhexylglycerin"
+    ]
+  },
+
+  // ========================
+  // PASTEL
+  // ========================
+  {
+    id: "pastel-show-cream-blush",
+    brandId: "pastel",
+    brand: "Pastel",
+    name: "Show By Pastel Krem Allık",
+    category: "yuz",
+    categoryLabel: "Yüz · Krem Allık",
+    image: "assets/images/blush.jpg",
+    description:
+      "Doğal ve taze görünüm veren %100 vegan, cruelty-free ve paraben içermeyen krem allık.",
+    crueltyFree: true,
+    skinTypes: ["Kuru", "Normal", "Hassas"],
+    ingredients: [
+      "Caprylic/Capric Triglyceride",
+      "Squalane",
+      "Euphorbia Cerifera Cera",
+      "Silica",
+      "Mica",
+      "Titanium Dioxide",
+      "Iron Oxides",
+      "CI 15850",
+      "Tocopherol"
+    ]
+  },
+  {
+    id: "pastel-profashion-lip-oil",
+    brandId: "pastel",
+    brand: "Pastel",
+    name: "Profashion Plump Up Dudak Parlatıcısı & Yağı",
+    category: "dudak",
+    categoryLabel: "Dudak · Parlatıcı & Yağ",
+    image: "assets/images/lipoil.jpg",
+    description:
+      "Jojoba yağı, hyaluronik asit ve E vitamini ile dudakları dolgunlaştıran vegan ve temiz içerikli dudak yağı.",
+    crueltyFree: true,
+    skinTypes: ["Kuru", "Hassas", "Tüm Ciltler"],
+    ingredients: [
+      "Ricinus Communis Seed Oil",
+      "Simmondsia Chinensis Seed Oil",
+      "Squalane",
+      "Sodium Hyaluronate",
+      "Butyrospermum Parkii Butter",
+      "Tocopherol",
+      "Iron Oxides",
+      "CI 15850"
+    ]
+  },
+
+  // ========================
+  // REVOLUTION BEAUTY
+  // ========================
+  {
+    id: "revolution-conceal-define",
+    brandId: "revolution",
+    brand: "Revolution Beauty",
+    name: "Conceal & Define Kapatıcı",
+    category: "yuz",
+    categoryLabel: "Yüz · Kapatıcı",
+    image: "assets/images/foundation.jpg",
+    description:
+      "Tam kapatıcılıklı, %100 vegan ve PETA onaylı cruelty-free likit kapatıcı.",
+    crueltyFree: true,
+    skinTypes: ["Karma", "Yağlı", "Normal"],
+    ingredients: [
+      "Aqua",
+      "Dimethicone",
+      "Propanediol",
+      "Titanium Dioxide",
+      "Iron Oxides",
+      "Silica",
+      "Rosa Canina Fruit Oil",
+      "Tocopherol",
+      "Phenoxyethanol",
+      "Ethylhexylglycerin"
+    ]
+  },
+
+  // ========================
+  // NARS COSMETICS
+  // ========================
+  {
+    id: "nars-orgasm-blush",
+    brandId: "nars",
+    brand: "NARS Cosmetics",
+    name: "Orgasm İkonik Toz Allık",
+    category: "yuz",
+    categoryLabel: "Yüz · Toz Allık",
+    image: "assets/images/blush.jpg",
+    description:
+      "Altın ışıltılı şeftali-pembe ikonik toz allık. Klasik formülünde Talk ve Karmin bulunduğu için hassas ciltler ve vegan kullanıcılar dikkat etmelidir.",
+    crueltyFree: false,
+    skinTypes: ["Normal"],
+    ingredients: [
+      "Talc",
+      "Mica",
+      "Dimethicone",
+      "Titanium Dioxide",
+      "Iron Oxides",
+      "Carmine",
+      "Tocopherol",
+      "Phenoxyethanol"
+    ]
   }
 ];

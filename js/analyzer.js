@@ -47,6 +47,202 @@ export function findIngredient(rawName) {
     }
   }
 
+  // 3. Akıllı INCI Desen & CI Pigment Tanıma (Veritabanında birebir yoksa bile sınıfını analiz et)
+  return classifyByPattern(cleaned, rawLower);
+}
+
+/**
+ * Veritabanında birebir bulunmayan gerçek dünya INCI maddelerini
+ * kozmetik kimya kurallarına ve CI pigment kodlarına göre akıllıca sınıflandırır.
+ */
+function classifyByPattern(rawName, lower) {
+  // Hayvansal kaynaklı anahtar kelimeler
+  if (/(beeswax|cera alba|cera flava|honey|propolis|royal jelly)/.test(lower)) {
+    return {
+      inci: rawName,
+      nameTr: `${rawName} (Arı Ürünü)`,
+      risk: "safe",
+      riskScore: 1,
+      vegan: false,
+      animalSource: "Bal arılarından elde edilen hayvansal bileşen.",
+      category: "Hayvansal Mum / Özüt",
+      summaryTr: "Cilt için besleyici ve koruyucudur ancak arı kaynaklı olduğu için VEGAN DEĞİLDİR.",
+      tags: ["Hayvansal Kaynaklı", "Vegan Değil"]
+    };
+  }
+  if (/(carmine|ci\s*75470|cochineal|carminic)/.test(lower)) {
+    return {
+      inci: rawName,
+      nameTr: `${rawName} (Karmin Pigmenti)`,
+      risk: "moderate",
+      riskScore: 4,
+      vegan: false,
+      animalSource: "Koşnil böceğinden elde edilen kırmızı pigment.",
+      category: "Hayvansal Renklendirici",
+      summaryTr: "Kırmızı/pembe ton veren böcek kaynaklı pigmenttir; VEGAN DEĞİLDİR.",
+      tags: ["Hayvansal Kaynaklı", "Vegan Değil"]
+    };
+  }
+  if (/(lanolin|tallow|collagen|elastin|keratin|silk|serica|snail|chitosan|guanine|ci\s*75170|shellac)/.test(lower)) {
+    return {
+      inci: rawName,
+      nameTr: `${rawName} (Hayvansal Türev)`,
+      risk: "safe",
+      riskScore: 2,
+      vegan: false,
+      animalSource: "Hayvansal kaynaklı kozmetik bileşeni.",
+      category: "Hayvansal Bileşen",
+      summaryTr: "Bitkisel/vegan olduğu özellikle belirtilmedikçe hayvansal kaynaklı kabul edilir ve VEGAN DEĞİLDİR.",
+      tags: ["Hayvansal Kaynaklı", "Vegan Değil"]
+    };
+  }
+
+  // Yüksek riskli kimyasal aileler
+  if (/paraben\b/.test(lower)) {
+    return {
+      inci: rawName,
+      nameTr: `${rawName} (Paraben)`,
+      risk: "high",
+      riskScore: 7,
+      vegan: true,
+      animalSource: null,
+      category: "Koruyucu (Paraben)",
+      summaryTr: "Paraben ailesinden sentetik koruyucudur; hormonal etki şüphesi nedeniyle temiz kozmetikte kaçınılır.",
+      tags: ["Paraben", "Endokrin Şüphesi"]
+    };
+  }
+  if (/(formaldehyd|hydantoin|imidazolidinyl|diazolidinyl|quaternium-15|bronopol)/.test(lower)) {
+    return {
+      inci: rawName,
+      nameTr: `${rawName} (Formaldehit Salıcı)`,
+      risk: "high",
+      riskScore: 9,
+      vegan: true,
+      animalSource: null,
+      category: "Koruyucu",
+      summaryTr: "Formaldehit salma potansiyeli taşıyan yüksek alerjen riskli koruyucudur.",
+      tags: ["Formaldehit Salıcı", "Kaçınılmalı"]
+    };
+  }
+  if (/(fluoro|ptfe|pfas|perfluoro)/.test(lower)) {
+    return {
+      inci: rawName,
+      nameTr: `${rawName} (Florlu Bileşik)`,
+      risk: "high",
+      riskScore: 8,
+      vegan: true,
+      animalSource: null,
+      category: "Kalıcı Kimyasal",
+      summaryTr: "PFAS/floropolimer grubuna ait kalıcı sentetik bileşendir; sağlık ve çevre açısından kaçınılması önerilir.",
+      tags: ["Kalıcı Kimyasal", "Yüksek Risk"]
+    };
+  }
+
+  // Silikon ailesi
+  if (/(dimethicone|methicone|siloxane|silsesquioxane|silicate)/.test(lower)) {
+    return {
+      inci: rawName,
+      nameTr: `${rawName} (Silikon Türevi)`,
+      risk: "moderate",
+      riskScore: 3,
+      vegan: true,
+      animalSource: null,
+      category: "Silikon / Pürüzsüzleştirici",
+      summaryTr: "Makyaja ipeksi kayganlık ve kalıcılık veren silikon türevidir. Akneye meyilli ciltlerde akşam çift aşamalı temizlik önerilir.",
+      tags: ["Silikon", "Pürüzsüzleştirici"]
+    };
+  }
+
+  // PEG / PPG / Etoksile emülgatörler
+  if (/^(peg|ppg)[-\s]?\d+|ceteareth|steareth|oleth|laureth|polysorbate/.test(lower)) {
+    return {
+      inci: rawName,
+      nameTr: `${rawName} (Sentetik Emülgatör)`,
+      risk: "moderate",
+      riskScore: 4,
+      vegan: true,
+      animalSource: null,
+      category: "Emülgatör",
+      summaryTr: "Su ve yağı birleştiren sentetik PEG/etoksile emülgatördür. Hassas ciltlerde bariyer geçirgenliğini artırabilir.",
+      tags: ["Sentetik Emülgatör"]
+    };
+  }
+
+  // Mineral Pigment CI Kodları (CI 77xxx)
+  if (/ci\s*77\d{3}|ultramarines|manganese violet|ferric ferrocyanide|chromium oxide|fluorphlogopite/.test(lower)) {
+    return {
+      inci: rawName,
+      nameTr: `${rawName} (Mineral Pigment)`,
+      risk: "safe",
+      riskScore: 1,
+      vegan: true,
+      animalSource: null,
+      category: "Mineral Renklendirici",
+      summaryTr: "Makyaj ürünlerine renk veya ışıltı veren, ciltle uyumlu ve vegan mineral pigmenttir.",
+      tags: ["Mineral", "Vegan Pigment"]
+    };
+  }
+
+  // Sentetik Organik Boya CI Kodları (CI 1xxxx - CI 4xxxx)
+  if (/ci\s*[124]\d{4}|yellow\s*\d|red\s*\d|blue\s*\d|lake\b/.test(lower)) {
+    return {
+      inci: rawName,
+      nameTr: `${rawName} (Kozmetik Boya)`,
+      risk: "moderate",
+      riskScore: 3,
+      vegan: true,
+      animalSource: null,
+      category: "Sentetik Renklendirici",
+      summaryTr: "Karmin'e vegan alternatif olarak kullanılan kozmetik renk pigmentidir. Çok hassas cilt/dudaklarda nadiren hassasiyet yapabilir.",
+      tags: ["Vegan Boya", "Renklendirici"]
+    };
+  }
+
+  // Bitkisel yağlar, tereyağları ve botanik özler
+  if (/(seed oil|fruit oil|kernel oil|flower oil|leaf oil|butter|leaf extract|flower extract|root extract|fruit extract|bark extract|seed extract|water\b)/.test(lower)) {
+    return {
+      inci: rawName,
+      nameTr: `${rawName} (Bitkisel Öz / Yağ)`,
+      risk: "safe",
+      riskScore: 1,
+      vegan: true,
+      animalSource: null,
+      category: "Botanik Bileşen",
+      summaryTr: "Bitkisel kaynaklı doğal yağ veya botanik özüttür; cildi beslemeye ve yumuşatmaya yardımcı olur.",
+      tags: ["Bitkisel", "Vegan"]
+    };
+  }
+
+  // Peptit, Seramid, Hyaluronik türevler
+  if (/(peptide|ceramide|hyaluron|panthenol|tocopher|ascorb|niacin)/.test(lower)) {
+    return {
+      inci: rawName,
+      nameTr: `${rawName} (Aktif Bakım)`,
+      risk: "safe",
+      riskScore: 1,
+      vegan: true,
+      animalSource: null,
+      category: "Aktif Bakım",
+      summaryTr: "Cilt bariyerini ve nem dengesini destekleyen modern kozmetik aktif bileşenidir.",
+      tags: ["Cilt Dostu", "Aktif"]
+    };
+  }
+
+  // Yaygın güvenli yapı/kıvam/çözücü bileşenleri
+  if (/(glycol|glyceride|stearate|palmitate|myristate|oleate|citrate|benzoate|sorbate|gum\b|cellulose|starch|silica|kaolin|clay|polybutene|isododecane|isohexadecane|squalane|wax|cera\b|oxide|mica|alumina|calcium)/.test(lower)) {
+    return {
+      inci: rawName,
+      nameTr: `${rawName} (Formül Bileşeni)`,
+      risk: "safe",
+      riskScore: 2,
+      vegan: true,
+      animalSource: null,
+      category: "Doku / Kıvam Verici",
+      summaryTr: "Ürünün dokusunu, kalıcılığını ve kolay sürülmesini sağlayan standart güvenli kozmetik bileşenidir.",
+      tags: ["Doku Verici", "Düşük Risk"]
+    };
+  }
+
   return null;
 }
 

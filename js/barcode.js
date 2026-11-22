@@ -78,33 +78,42 @@ export async function fetchProductByBarcode(rawCode) {
     }
   }
 
-  // 2. Open Beauty Facts API v2 üzerinden canlı sorgula
-  const url = `https://world.openbeautyfacts.org/api/v2/product/${encodeURIComponent(code)}.json?fields=product_name,product_name_tr,product_name_en,brands,image_front_url,image_url,ingredients_text,ingredients_text_tr,ingredients_text_en,ingredients,labels_tags,categories`;
-
-  let response;
-  try {
-    response = await fetch(url, {
-      headers: { Accept: "application/json" }
-    });
-  } catch {
-    throw new Error(
-      "Open Beauty Facts sunucusuna bağlanılamadı. İnternet bağlantınızı kontrol edin."
-    );
-  }
-
-  if (!response.ok) {
-    if (response.status === 404) {
-      throw new Error(
-        `Barkod (${code}) Open Beauty Facts veritabanında bulunamadı. İçerik listesini "İçerik Analizörü" sekmesine yapıştırarak manuel analiz edebilirsiniz.`
-      );
+  // 2. Open Beauty Facts API v2 (ve bulunamazsa Open Products Facts yedek API) üzerinden canlı sorgula
+  const fields =
+    "product_name,product_name_tr,product_name_en,brands,image_front_url,image_url,ingredients_text,ingredients_text_tr,ingredients_text_en,ingredients,labels_tags,categories";
+  const endpoints = [
+    {
+      url: `https://world.openbeautyfacts.org/api/v2/product/${encodeURIComponent(code)}.json?fields=${fields}`,
+      label: "Open Beauty Facts (Canlı)"
+    },
+    {
+      url: `https://world.openproductsfacts.org/api/v2/product/${encodeURIComponent(code)}.json?fields=${fields}`,
+      label: "Open Products Facts (Canlı)"
     }
-    throw new Error(`Sunucu hatası (HTTP ${response.status}). Lütfen tekrar deneyin.`);
+  ];
+
+  let data = null;
+  let usedLabel = "Open Beauty Facts (Canlı)";
+
+  for (const ep of endpoints) {
+    try {
+      const response = await fetch(ep.url, { headers: { Accept: "application/json" } });
+      if (response.ok) {
+        const json = await response.json();
+        if (json.status === 1 && json.product) {
+          data = json;
+          usedLabel = ep.label;
+          break;
+        }
+      }
+    } catch {
+      // sonraki kaynağa geç
+    }
   }
 
-  const data = await response.json();
-  if (data.status !== 1 || !data.product) {
+  if (!data || !data.product) {
     throw new Error(
-      `Barkod (${code}) veritabanında kayıtlı değil. Farklı bir ürün barkodu deneyebilir veya INCI listesini manuel analiz edebilirsiniz.`
+      `Barkod (${code}) Open Beauty Facts ve Open Products Facts veritabanlarında bulunamadı. Ürünün arkasındaki INCI listesini "İçerik Analizörü" sekmesine yapıştırarak anında analiz edebilirsiniz.`
     );
   }
 
@@ -132,7 +141,7 @@ export async function fetchProductByBarcode(rawCode) {
 
   return {
     source: "openbeautyfacts",
-    sourceLabel: "Open Beauty Facts (Canlı)",
+    sourceLabel: usedLabel,
     barcode: code,
     name,
     brand,

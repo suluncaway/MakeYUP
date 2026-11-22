@@ -69,5 +69,49 @@ export const BRANDS_DATA = [
     brandVeganPolicy: "mixed",
     brandVeganLabel: "Karma (Ürün Bazlı Kontrol)",
     tagline: "Yaygın erişilebilir günlük makyaj serisi; bazı klasik ürünlerde balmumu, talk veya paraben yer alabilir."
+  },
+  {
+    id: "golden-rose",
+    name: "Golden Rose",
+    monogram: "GR",
+    accentColor: "#9f1239",
+    country: "Türkiye",
+    crueltyFree: true,
+    brandVeganPolicy: "mixed",
+    brandVeganLabel: "Cruelty-Free · Ürün Bazlı Vegan",
+    tagline: "Türkiye'nin en yaygın makyaj markalarından biri; vegan serileri ve klasik renkli kozmetik ürünleri bulunur."
+  },
+  {
+    id: "pastel",
+    name: "Pastel",
+    monogram: "PST",
+    accentColor: "#db2777",
+    country: "Türkiye",
+    crueltyFree: true,
+    brandVeganPolicy: "partial",
+    brandVeganLabel: "Cruelty-Free · Geniş Vegan Seri",
+    tagline: "Türkiye menşeli, hayvanlar üzerinde test yapmayan ve vegan/helal sertifikalı geniş makyaj koleksiyonu."
+  },
+  {
+    id: "revolution",
+    name: "Revolution Beauty",
+    monogram: "REV",
+    accentColor: "#4338ca",
+    country: "İngiltere",
+    crueltyFree: true,
+    brandVeganPolicy: "partial",
+    brandVeganLabel: "Cruelty-Free · Çoğunlukla Vegan",
+    tagline: "PETA onaylı cruelty-free, uygun fiyatlı ve geniş vegan kapatıcı, far ve allık serisi."
+  },
+  {
+    id: "nars",
+    name: "NARS Cosmetics",
+    monogram: "NARS",
+    accentColor: "#18181b",
+    country: "ABD / Fransa",
+    crueltyFree: false,
+    brandVeganPolicy: "mixed",
+    brandVeganLabel: "Karma (Karmin İçerebilir)",
+    tagline: "Yüksek pigmentli lüks makyaj ürünleri; pembe/kırmızı tonlarda karmin veya talk bulunabilir."
   }
 ];
