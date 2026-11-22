@@ -145,6 +145,7 @@ function normalizeHfProduct(row) {
     description: "Tam INCI içerik listesiyle MakeYUP motoru tarafından analiz edilmiş doğrulanmış ürün kaydı.",
     crueltyFree: false,
     ingredientsText: row.i || "",
+    scans: 0,
     source: "openbeautyfacts", // HD stüdyo packshot çerçeveleme (is-api-photo) için
     sourceLabel: "Doğrulanmış INCI Arşivi"
   };
@@ -198,6 +199,7 @@ async function queryMakeupApi({ brand = "", categoryTerm = "" }) {
         description: (m.description || "Küresel makyaj kataloğundan çekilen ürün kaydı.").replace(/\s+/g, " ").trim().slice(0, 180),
         crueltyFree: isCf,
         ingredientsText: isVegan ? "Aqua, Squalane, Mica, Iron Oxides, Tocopherol" : "",
+        scans: 0,
         source: "openbeautyfacts",
         sourceLabel: "Makeup API"
       };
@@ -249,6 +251,7 @@ function findMatchingLocalProducts({ query = "", brand = "", categoryTerm = "" }
     ...p,
     ingredientsText: p.ingredients.join(", "),
     hasRealImage: true,
+    scans: 0,
     source: "local",
     sourceLabel: "MakeYUP Seçkisi"
   }));
@@ -307,6 +310,7 @@ function normalizeApiProduct(raw) {
       : "Küresel veritabanında kayıtlı ürün (INCI içerik listesi henüz eklenmemiş).",
     crueltyFree,
     ingredientsText: ingredientsText.trim(),
+    scans: Number(raw.unique_scans_n || 0),
     source: "openbeautyfacts",
     sourceLabel: "Küresel Kayıt"
   };
@@ -318,15 +322,14 @@ async function queryObfEndpoint(terms, page, pageSize, host = "world.openbeautyf
     json: "1",
     page: String(page),
     page_size: String(pageSize),
+    sort_by: "unique_scans_n",
     fields:
-      "code,product_name,product_name_tr,product_name_en,brands,image_front_small_url,image_front_url,image_url,ingredients_text,ingredients_text_en,ingredients_text_tr,labels_tags,categories"
+      "code,product_name,product_name_tr,product_name_en,brands,image_front_small_url,image_front_url,image_url,ingredients_text,ingredients_text_en,ingredients_text_tr,labels_tags,categories,unique_scans_n"
   });
 
   if (terms) {
     params.set("search_terms", terms);
     params.set("search_simple", "1");
-  } else {
-    params.set("sort_by", "unique_scans_n");
   }
 
   const url = `https://${host}/cgi/search.pl?${params.toString()}`;
@@ -398,14 +401,7 @@ export async function searchGlobalProducts({
     .filter((p) => p.code && (p.product_name || p.product_name_en || p.product_name_tr))
     .map(normalizeApiProduct);
 
-  normalized.sort((a, b) => {
-    const aHas = a.ingredientsText.length > 15 ? 1 : 0;
-    const bHas = b.ingredientsText.length > 15 ? 1 : 0;
-    if (bHas !== aHas) return bHas - aHas;
-    return (b.hasRealImage ? 1 : 0) - (a.hasRealImage ? 1 : 0);
-  });
-
-  // Sayfa 1'de yerel seçki + Hugging Face (1.000 marka tam INCI) + Makeup API sonuçlarını birleştir
+  // Sayfa 1'de yerel seçki + popülerlik sıralı canlı API + Hugging Face + Makeup API birleştir
   let finalProducts = normalized;
   if (page === 1) {
     const localMatches = findMatchingLocalProducts({ query, brand, categoryTerm });
@@ -444,7 +440,7 @@ export async function searchGlobalProducts({
         ? await queryMakeupApi({ brand, categoryTerm })
         : [];
 
-    const merged = [...localMatches, ...hfMatches, ...normalized, ...makeupMatches];
+    const merged = [...localMatches, ...normalized, ...hfMatches, ...makeupMatches];
     const seenIds = new Set();
     finalProducts = merged.filter((p) => {
       if (seenIds.has(p.id)) return false;

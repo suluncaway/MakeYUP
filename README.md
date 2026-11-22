@@ -8,6 +8,9 @@
 
 ## Öne Çıkan Özellikler
 
+- **Piksel Lab Marka Kimliği:** Ruh açıcı pembe-krem dama kareleri, crispEdges pixel art sprite'ları, maskot **Yupi**, 3 piksel trafik ışığı ve Pixelify Sans başlıklar. Tasarım kuralları ve palet için → [BRAND.md](BRAND.md).
+- **Rehber (Eğitim & Etiket Dedektifi Testi):** Kullanıcıların zararlı maddeleri (paraben, formaldehit salıcı, PFAS, talk), sarı bayrakları, yanlış bilinenleri ve hayvansal içerikleri kendi başına ayırt edebilmesi için 6 derslik interaktif eğitim ve 6 soruluk Etiket Dedektifi testi.
+- **En Sevilenler Sıralaması & Favoriler:** Ürünler popülerlik (`unique_scans_n`), sağlık puanı, vegan önceliği veya A→Z sırasıyla dizilebilir; kalp butonuyla favorilenen ürünler tarayıcıda saklanır ve "Favorilerim" şeridinde listelenir.
 - **🌍 Dünya Makyaj & Cilt Bakımı Kataloğu (Canlı API):** Open Beauty Facts küresel açık veritabanına canlı bağlıdır. Dünyadaki on binlerce cilt bakım ve makyaj ürününü (La Roche-Posay, CeraVe, The Ordinary, Garnier, Nivea, Bioderma, L'Oréal, Maybelline, Essence, NYX, Catrice, Clinique ve daha fazlası) marka marka gruplayarak arayabilir, sayfalayarak keşfedebilir ve anında görsel analizini görebilirsiniz.
 - **Barkod Tarama & Canlı API Entegrasyonu:** Telefon veya bilgisayar kamerasıyla (native `BarcodeDetector` + ZXing fallback), barkod fotoğrafı yükleyerek ya da barkod numarası girerek **Open Beauty Facts** açık veritabanından ürünün içeriğini otomatik çeker; sağlık skorunu ve vegan durumunu anında görselleştirir.
 - **Marka Marka Ayrılmış Katalog & Marka Karneleri:** Ürünler **Rare Beauty**, **NYX Professional Makeup**, **Fenty Beauty**, **Flormar**, **MAC Cosmetics** ve **Maybelline New York** gibi markalara göre ayrı bölümlerde gruplanır. Her markanın ortalama sağlık puanı, vegan politikası, cruelty-free durumu ve vegan ürün oranı dinamik olarak hesaplanır.
@@ -23,13 +26,23 @@
 ```text
 MakeYUP/
 ├── index.html               # Ana HTML5 uygulama yapısı
+├── BRAND.md                 # Piksel Lab marka kimliği dokümanı
+├── favicon.svg              # Yupi piksel maskot ikonu
 ├── css/
-│   └── styles.css           # Temiz editöryel tasarım sistemi & açık/koyu tema
+│   ├── styles.css           # Temel arayüz stilleri
+│   ├── app-skin.css         # Kit token köprüsü
+│   └── brand-pixel.css      # Piksel Lab marka kimliği CSS katmanı
 ├── js/
-│   ├── app.js               # Arayüz, filtreleme, modal ve karşılaştırma kontrolcüsü
+│   ├── app.js               # Arayüz, sıralama, filtreleme, modal ve karşılaştırma kontrolcüsü
 │   ├── analyzer.js          # Dinamik INCI ayrıştırıcı, sağlık skoru & vegan motoru
+│   ├── barcode.js           # Kamera/fotoğraf barkod tarayıcı + çoklu API
+│   ├── globalApi.js         # Küresel arama ve popülerlik entegrasyonu
+│   ├── pixel.js             # Pixel art SVG sprite sistemi
+│   ├── favorites.js         # Favori ürünler (localStorage) yönetimi
+│   ├── guide.js             # Rehber dersleri & Etiket Dedektifi quiz kontrolcüsü
 │   └── data/
 │       ├── brands.js        # Marka profilleri ve vegan / cruelty-free politikaları
+│       ├── guide.js         # Rehber dersleri ve quiz soruları
 │       ├── ingredients.js   # Türkçe açıklamalı INCI içerik veritabanı
 │       └── products.js      # Marka marka ayrılmış makyaj ürünleri kataloğu
 ├── assets/

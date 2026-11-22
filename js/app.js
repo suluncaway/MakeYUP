@@ -17,6 +17,9 @@ import {
   GLOBAL_CATEGORIES,
   searchGlobalProducts
 } from "./globalApi.js";
+import { pixelSVG, hydratePixels } from "./pixel.js";
+import { getFavs, isFav, toggleFav } from "./favorites.js";
+import { initGuide } from "./guide.js";
 
 // ============================================================
 // Yardımcı Fonksiyonlar
@@ -76,6 +79,19 @@ function renderLargeRing(score, status) {
         <span>/ 100</span>
       </div>
     </div>
+  `;
+}
+
+function renderTrafficLights(status) {
+  const isMint = status === "healthy";
+  const isLemon = status === "moderate";
+  const isTomato = status === "risky";
+  return `
+    <span class="px-lights" aria-hidden="true">
+      <i class="px-light px-light--mint ${isMint ? "is-on" : ""}"></i>
+      <i class="px-light px-light--lemon ${isLemon ? "is-on" : ""}"></i>
+      <i class="px-light px-light--tomato ${isTomato ? "is-on" : ""}"></i>
+    </span>
   `;
 }
 
@@ -374,6 +390,7 @@ const state = {
   globalGroupByBrand: false,
   globalOnlyWithInci: false,
   globalOnlyVegan: false,
+  globalSort: "popular",
   globalPage: 1,
   globalTotalCount: 0,
   globalHasMore: false,
@@ -395,7 +412,10 @@ const INCI_PRESETS = {
 // ============================================================
 const heroQuickSearchFormEl = document.getElementById("heroQuickSearchForm");
 const heroQuickSearchInputEl = document.getElementById("heroQuickSearchInput");
+const makeyupSuggestEl = document.getElementById("makeyupSuggest");
 const scrollTopBtn = document.getElementById("scrollTopBtn");
+const favStripEl = document.getElementById("favStrip");
+const globalSortSelectEl = document.getElementById("globalSortSelect");
 
 const brandFilterStripEl = document.getElementById("brandFilterStrip");
 const groupByBrandBtn = document.getElementById("groupByBrandBtn");
@@ -493,9 +513,10 @@ function renderBrandStrip() {
   brandFilterStripEl.innerHTML = allPill + brandPills;
 }
 
-function renderProductCard(p) {
+function renderProductCard(p, showRank = false) {
   const { analysis } = p;
   const isCompared = state.compareIds.includes(p.id);
+  const favActive = isFav(p.id);
   const scoreColor = getScoreColorVar(analysis.healthScore, analysis.healthStatus);
 
   const highlightPills = analysis.highlights
@@ -516,6 +537,10 @@ function renderProductCard(p) {
     .join("");
 
   const isApiPhoto = p.source === "openbeautyfacts";
+  const rankBadge =
+    showRank && state.globalSort === "popular" && p.scans > 0 && p.__rank && p.__rank <= 10
+      ? `<span class="px-badge px-badge--rank">#${p.__rank}</span>`
+      : "";
 
   return `
     <article class="product-card">
@@ -528,8 +553,22 @@ function renderProductCard(p) {
               <span class="score-mini-num" style="color:${scoreColor}">${analysis.healthScore}/100</span>
               <span class="score-mini-label">${escapeHtml(analysis.healthLabel)}</span>
             </div>
+            ${renderTrafficLights(analysis.healthStatus)}
+            ${rankBadge}
           </div>
-          ${renderVeganTag(analysis.veganStatus, analysis.veganLabel)}
+          <div class="card-overlay-right">
+            ${renderVeganTag(analysis.veganStatus, analysis.veganLabel)}
+            <button
+              type="button"
+              class="card-fav-btn"
+              data-fav="${escapeHtml(p.id)}"
+              aria-pressed="${favActive}"
+              aria-label="${favActive ? "Favorilerden çıkar" : "Favorilere ekle"}"
+              title="${favActive ? "Favorilerden çıkar" : "Favorilere ekle"}"
+            >
+              ${pixelSVG("heart", { size: 18 })}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -537,7 +576,7 @@ function renderProductCard(p) {
         <div>
           <div class="card-meta-row">
             <span>${escapeHtml(p.brand)} · ${escapeHtml(p.categoryLabel)}</span>
-            ${p.crueltyFree ? `<span>🐰 Cruelty-Free</span>` : ""}
+            ${p.scans > 0 ? `<span>♥ ${p.scans.toLocaleString("tr-TR")} kişi baktı</span>` : p.crueltyFree ? `<span>🐰 Cruelty-Free</span>` : ""}
           </div>
           <h3 class="card-title">${escapeHtml(p.name)}</h3>
           <p class="card-desc">${escapeHtml(p.description)}</p>
@@ -657,7 +696,7 @@ function renderCatalog() {
             </div>
 
             <div class="product-grid">
-              ${items.map(renderProductCard).join("")}
+              ${items.map((item) => renderProductCard(item, false)).join("")}
             </div>
           </div>
         `;
@@ -667,7 +706,7 @@ function renderCatalog() {
     // Düz Grid Görünümü
     productGridEl.innerHTML = `
       <div class="product-grid">
-        ${filtered.map(renderProductCard).join("")}
+        ${filtered.map((item) => renderProductCard(item, false)).join("")}
       </div>
     `;
   }
@@ -981,8 +1020,8 @@ function switchView(viewName) {
 // Tema Yönetimi (Açık / Koyu)
 // ============================================================
 function initTheme() {
-  // Yeni tasarım tek, açık bir görünüm sistemi kullanır.
-  document.documentElement.dataset.theme = "light";
+  const saved = localStorage.getItem("makeyup-theme");
+  document.documentElement.dataset.theme = saved || "light";
 }
 
 themeToggleBtn?.addEventListener("click", () => {
@@ -995,23 +1034,46 @@ themeToggleBtn?.addEventListener("click", () => {
 // ============================================================
 // Olay Dinleyicileri (Event Listeners)
 // ============================================================
+const VIEW_NAMES = ["global", "catalog", "brands", "scanner", "analyzer", "guide", "glossary"];
+
+function applyHashView() {
+  const m = window.location.hash.match(/^#view-([a-z]+)$/);
+  if (m && VIEW_NAMES.includes(m[1])) {
+    switchView(m[1]);
+    document.getElementById(`view-${m[1]}`)?.scrollIntoView({ block: "start" });
+  }
+}
+
 document.querySelectorAll(".nav-tab, .mobile-nav-item").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    switchView(btn.dataset.view);
+  btn.addEventListener("click", (e) => {
+    if (btn.tagName === "A") e.preventDefault();
+    const view = btn.dataset.view;
+    switchView(view);
+    if (view) {
+      window.history.replaceState(null, "", `#view-${view}`);
+    }
     if (window.innerWidth <= 768) {
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      document.getElementById(`view-${view}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else if (view !== "global") {
+      document.getElementById(`view-${view}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   });
 });
 
 document.querySelectorAll("[data-jump]").forEach((btn) => {
-  btn.addEventListener("click", () => {
+  btn.addEventListener("click", (e) => {
+    if (btn.tagName === "A") e.preventDefault();
     const target = btn.dataset.jump;
     switchView(target);
+    if (target) {
+      window.history.replaceState(null, "", `#view-${target}`);
+    }
     const el = document.getElementById(`view-${target}`);
     el?.scrollIntoView({ behavior: "smooth", block: "start" });
   });
 });
+
+window.addEventListener("hashchange", applyHashView);
 
 brandFilterStripEl.addEventListener("click", (e) => {
   const pill = e.target.closest("[data-select-brand]");
@@ -1073,6 +1135,17 @@ filterCrueltyBtn.addEventListener("click", () => {
 });
 
 productGridEl.addEventListener("click", (e) => {
+  const favBtn = e.target.closest("[data-fav]");
+  if (favBtn) {
+    const prod = productRegistry.get(favBtn.dataset.fav);
+    if (prod) {
+      toggleFav(prod);
+      renderFavStrip();
+      renderCatalog();
+      renderGlobalResults();
+    }
+    return;
+  }
   const openBtn = e.target.closest("[data-open-product]");
   if (openBtn) {
     openProductModal(openBtn.dataset.openProduct);
@@ -1108,6 +1181,14 @@ document.addEventListener("click", (e) => {
   if (closeBtn) {
     document.getElementById(closeBtn.dataset.closeDialog)?.close();
   }
+});
+
+// Doğrudan modal kapatma düğmesi bağlayıcıları
+document.querySelectorAll("[data-close-dialog]").forEach((btn) => {
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    document.getElementById(btn.dataset.closeDialog)?.close();
+  });
 });
 
 // Dialog dışına (backdrop) tıklayınca kapatma
@@ -1429,14 +1510,115 @@ function renderGlobalBrandsStrip() {
   globalBrandsStripEl.innerHTML = allBtn + pills;
 }
 
+const CATEGORY_SPRITE_MAP = {
+  all: "sparkle",
+  lipstick: "lipstick",
+  mascara: "mascara",
+  eyeshadow: "star",
+  foundation: "bottle",
+  blush: "heart",
+  serum: "drop",
+  cream: "shield",
+  cleanser: "leaf",
+  sunscreen: "warning"
+};
+
+function stripLeadingEmoji(label) {
+  return String(label || "").replace(/^[^\p{L}\p{N}(]+/u, "").trim();
+}
+
 function renderGlobalCategoriesStrip() {
-  globalCategoriesStripEl.innerHTML = GLOBAL_CATEGORIES.map(
-    (cat) => `
+  globalCategoriesStripEl.innerHTML = GLOBAL_CATEGORIES.map((cat) => {
+    const sprite = CATEGORY_SPRITE_MAP[cat.id] || "sparkle";
+    const cleanLabel = stripLeadingEmoji(cat.label);
+    return `
       <button type="button" class="chip ${state.globalCategoryId === cat.id ? "is-active" : ""}" data-global-cat="${escapeHtml(cat.id)}">
-        ${escapeHtml(cat.label)}
+        ${pixelSVG(sprite, { size: 18 })}
+        <span>${escapeHtml(cleanLabel)}</span>
       </button>
-    `
-  ).join("");
+    `;
+  }).join("");
+}
+
+function populateSearchSuggestions() {
+  if (!makeyupSuggestEl) return;
+  const terms = [
+    ...GLOBAL_BRANDS.map((b) => b.name),
+    "Ruj",
+    "Maskara",
+    "Fondöten",
+    "Kapatıcı",
+    "Allık",
+    "Far",
+    "Güneş kremi",
+    "Nemlendirici",
+    "Serum",
+    "Temizleyici",
+    ...INGREDIENTS_DB.slice(0, 40).map((i) => i.nameTr)
+  ];
+  const unique = [...new Set(terms.map((t) => String(t || "").trim()).filter(Boolean))];
+  makeyupSuggestEl.innerHTML = unique
+    .map((val) => `<option value="${escapeHtml(val)}"></option>`)
+    .join("");
+}
+
+function renderFavStrip() {
+  if (!favStripEl) return;
+  const favs = getFavs();
+  if (favs.length === 0) {
+    favStripEl.hidden = true;
+    favStripEl.innerHTML = "";
+    return;
+  }
+
+  favStripEl.hidden = false;
+  const cardsHtml = favs
+    .map((fav) => {
+      if (!productRegistry.has(fav.id)) {
+        const enriched = {
+          ...fav,
+          scans: 0,
+          analysis: fav.ingredientsText
+            ? analyzeIngredients(fav.ingredientsText)
+            : analyzeIngredients([])
+        };
+        productRegistry.set(fav.id, enriched);
+      }
+      const regProd = productRegistry.get(fav.id);
+      const status = regProd?.analysis?.healthStatus || "unknown";
+      return `
+        <div class="fav-mini-card" data-open-product="${escapeHtml(fav.id)}" role="button" tabindex="0">
+          <img src="${escapeHtml(fav.image)}" alt="${escapeHtml(fav.name)}" onerror="this.onerror=null;this.src='assets/images/foundation.jpg';" />
+          <div class="fav-mini-meta">
+            <span>${escapeHtml(fav.brand)}</span>
+            <strong>${escapeHtml(fav.name)}</strong>
+            ${renderTrafficLights(status)}
+          </div>
+          <button
+            type="button"
+            class="card-fav-btn"
+            data-fav="${escapeHtml(fav.id)}"
+            aria-pressed="true"
+            aria-label="${escapeHtml(fav.name)} favorilerden çıkar"
+            title="Favorilerden çıkar"
+          >
+            ${pixelSVG("heart", { size: 16 })}
+          </button>
+        </div>
+      `;
+    })
+    .join("");
+
+  favStripEl.innerHTML = `
+    <div class="fav-strip-head">
+      <div class="fav-strip-title">
+        ${pixelSVG("heart", { size: 20 })}
+        <span>Favorilerim</span>
+        <span class="px-badge px-badge--pink">${favs.length}</span>
+      </div>
+    </div>
+    <div class="fav-cards-row">${cardsHtml}</div>
+  `;
 }
 
 function renderSkeletonGrid(count = 6) {
@@ -1492,7 +1674,7 @@ function renderGlobalActiveFilters() {
 function renderGlobalResults() {
   renderGlobalActiveFilters();
 
-  let visible = state.globalItems;
+  let visible = [...state.globalItems];
 
   if (state.globalOnlyWithInci) {
     visible = visible.filter((p) => p.ingredientsText && p.ingredientsText.length > 5);
@@ -1501,12 +1683,35 @@ function renderGlobalResults() {
     visible = visible.filter((p) => p.analysis.veganStatus === "vegan");
   }
 
+  // Sıralama (kopya üzerinde)
+  if (state.globalSort === "health") {
+    visible.sort((a, b) => {
+      const aHas = a.analysis.counts.total > 0 ? 1 : 0;
+      const bHas = b.analysis.counts.total > 0 ? 1 : 0;
+      if (bHas !== aHas) return bHas - aHas;
+      return b.analysis.healthScore - a.analysis.healthScore;
+    });
+  } else if (state.globalSort === "clean-vegan") {
+    visible.sort((a, b) => {
+      const aVeg = a.analysis.veganStatus === "vegan" ? 1 : 0;
+      const bVeg = b.analysis.veganStatus === "vegan" ? 1 : 0;
+      if (bVeg !== aVeg) return bVeg - aVeg;
+      return b.analysis.healthScore - a.analysis.healthScore;
+    });
+  } else if (state.globalSort === "az") {
+    visible.sort((a, b) => a.name.localeCompare(b.name, "tr"));
+  }
+
+  visible.forEach((item, idx) => {
+    item.__rank = idx + 1;
+  });
+
   const totalFormatted = state.globalTotalCount
     ? state.globalTotalCount.toLocaleString("tr-TR")
     : String(visible.length);
 
-  // Ekranda bir seferde 12 ürün; daha fazlası düğmeyle açılır (indirilen sayfa 100'lük kalır).
-  const shownCount = Math.min(state.globalShown || 3, visible.length);
+  // Ekranda ilk aşamada 12 ürün; daha fazlası düğme veya kaydırmayla açılır
+  const shownCount = Math.min(state.globalShown || 12, visible.length);
   const hiddenLocal = visible.length - shownCount;
   visible = visible.slice(0, shownCount);
 
@@ -1528,7 +1733,7 @@ function renderGlobalResults() {
   if (visible.length === 0) {
     globalResultsContainerEl.innerHTML = `
       <div class="empty-state" style="background:var(--bg-surface);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);">
-        <div class="empty-icon" aria-hidden="true">🌍</div>
+        <div style="display:inline-flex;justify-content:center;margin-bottom:8px;">${pixelSVG("yupi", { size: 56 })}</div>
         <h3>Bu filtrede ürün bulunamadı</h3>
         <p>"Sadece İçeriği Olanlar" veya "Sadece Vegan" filtresini kapatabilir ya da farklı bir marka/ürün adı arayabilirsiniz.</p>
       </div>
@@ -1583,7 +1788,7 @@ function renderGlobalResults() {
             </div>
 
             <div class="product-grid">
-              ${items.map(renderProductCard).join("")}
+              ${items.map((item) => renderProductCard(item, true)).join("")}
             </div>
           </div>
         `;
@@ -1592,7 +1797,7 @@ function renderGlobalResults() {
   } else {
     globalResultsContainerEl.innerHTML = `
       <div class="product-grid">
-        ${visible.map(renderProductCard).join("")}
+        ${visible.map((item) => renderProductCard(item, true)).join("")}
       </div>
     `;
   }
@@ -1606,7 +1811,7 @@ async function fetchGlobalCatalog({ append = false } = {}) {
   state.globalLoading = true;
   if (!append) {
     state.globalItems = [];
-    state.globalShown = 3;
+    state.globalShown = 12;
     renderGlobalResults();
   } else {
     globalLoadMoreBtn.disabled = true;
@@ -1690,6 +1895,23 @@ heroQuickSearchFormEl?.addEventListener("submit", (e) => {
   fetchGlobalCatalog({ append: false });
 });
 
+document.querySelectorAll("[data-hero-suggest]").forEach((chip) => {
+  chip.addEventListener("click", () => {
+    const q = chip.dataset.heroSuggest || "";
+    if (heroQuickSearchInputEl) heroQuickSearchInputEl.value = q;
+    globalSearchInputEl.value = q;
+    state.globalQuery = q;
+    switchView("global");
+    document.getElementById("view-global")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    fetchGlobalCatalog({ append: false });
+  });
+});
+
+globalSortSelectEl?.addEventListener("change", (e) => {
+  state.globalSort = e.target.value;
+  renderGlobalResults();
+});
+
 globalResetFiltersBtn?.addEventListener("click", () => {
   const needsRefetch = Boolean(
     state.globalBrand || state.globalQuery || state.globalCategoryId !== "all"
@@ -1748,7 +1970,7 @@ globalOnlyVeganBtn.addEventListener("click", () => {
 });
 
 globalLoadMoreBtn.addEventListener("click", () => {
-  const shown = state.globalShown || 3;
+  const shown = state.globalShown || 12;
   state.globalShown = shown + 12;
   if (state.globalShown > state.globalItems.length && state.globalHasMore) {
     fetchGlobalCatalog({ append: true });
@@ -1757,28 +1979,46 @@ globalLoadMoreBtn.addEventListener("click", () => {
   }
 });
 
-// Otomatik yükleme kapalı: sayfa yalnız ziyaretçi istediğinde uzar.
-if (false && "IntersectionObserver" in window) {
+// Sayfa sonuna yaklaşıldığında yerel havuzdan veya sonraki sayfadan otomatik yükle
+if ("IntersectionObserver" in window) {
   const infiniteObserver = new IntersectionObserver(
     (entries) => {
       for (const entry of entries) {
         if (
           entry.isIntersecting &&
           state.activeView === "global" &&
-          state.globalHasMore &&
           !state.globalLoading &&
-          state.globalItems.length > 0
+          state.globalItems.length > 0 &&
+          !globalLoadMoreWrapEl.hidden
         ) {
-          fetchGlobalCatalog({ append: true });
+          const shown = state.globalShown || 12;
+          if (shown < state.globalItems.length) {
+            state.globalShown = shown + 12;
+            renderGlobalResults();
+          } else if (state.globalHasMore) {
+            state.globalShown = shown + 12;
+            fetchGlobalCatalog({ append: true });
+          }
         }
       }
     },
-    { rootMargin: "800px" }
+    { rootMargin: "450px" }
   );
   infiniteObserver.observe(globalLoadMoreWrapEl);
 }
 
 globalResultsContainerEl.addEventListener("click", (e) => {
+  const favBtn = e.target.closest("[data-fav]");
+  if (favBtn) {
+    const prod = productRegistry.get(favBtn.dataset.fav);
+    if (prod) {
+      toggleFav(prod);
+      renderFavStrip();
+      renderCatalog();
+      renderGlobalResults();
+    }
+    return;
+  }
   const openBtn = e.target.closest("[data-open-product]");
   if (openBtn) {
     openProductModal(openBtn.dataset.openProduct);
@@ -1790,13 +2030,50 @@ globalResultsContainerEl.addEventListener("click", (e) => {
   }
 });
 
+favStripEl?.addEventListener("click", (e) => {
+  const favBtn = e.target.closest("[data-fav]");
+  if (favBtn) {
+    e.stopPropagation();
+    const prod = productRegistry.get(favBtn.dataset.fav) || { id: favBtn.dataset.fav };
+    toggleFav(prod);
+    renderFavStrip();
+    renderCatalog();
+    renderGlobalResults();
+    return;
+  }
+  const card = e.target.closest("[data-open-product]");
+  if (card) {
+    openProductModal(card.dataset.openProduct);
+  }
+});
+
+favStripEl?.addEventListener("keydown", (e) => {
+  if (e.key !== "Enter" && e.key !== " ") return;
+  const card = e.target.closest("[data-open-product]");
+  if (card) {
+    e.preventDefault();
+    openProductModal(card.dataset.openProduct);
+  }
+});
+
 // ============================================================
 // Başlatma
 // ============================================================
 initTheme();
+hydratePixels();
+populateSearchSuggestions();
+initGuide({
+  onTryAnalyzer: (inciText) => {
+    inciTextareaEl.value = inciText;
+    switchView("analyzer");
+    runLiveAnalyzer();
+    document.getElementById("view-analyzer")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+});
 loadCosingIndex();
 renderGlobalBrandsStrip();
 renderGlobalCategoriesStrip();
+renderFavStrip();
 renderBrandStrip();
 renderCatalog();
 renderBrandsDirectory();
@@ -1804,3 +2081,4 @@ renderSampleBarcodes();
 renderGlossary();
 updateCompareButton();
 fetchGlobalCatalog({ append: false });
+applyHashView();

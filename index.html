@@ -11,14 +11,14 @@
 <meta property="og:image" content="share.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
-<meta name="theme-color" content="#f6f3ef">
+<meta name="theme-color" content="#FFF8F0">
 <!-- <link rel="canonical" href="https://[alan adı]/"> -->
 <meta name="site-kind" content="software">
 <meta name="page-type" content="software">
 <link rel="stylesheet" href="css/styles.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400..700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&family=Urbanist:wght@400..700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/system.css">
 <link rel="stylesheet" href="assets/ui/cards.css">
 <link rel="stylesheet" href="assets/motion/motion.css">
@@ -27,25 +27,23 @@
 <link rel="stylesheet" href="assets/icons/icon.css">
 <style>
 :root {
-  --p-bg: #f6f3ef; --p-surface: #ece6df; --p-ink: #1d1916; --p-muted: #67635f;
-  --p-accent: #a64d63; --p-accent-ink: #f6f3ef; --p-action: #a64d63; --p-action-ink: #f6f3ef;
-  --p-inv-bg: #1d1916; --p-inv-surface: #292522; --p-inv-ink: #f6f3ef; --p-inv-muted: #9c9894;
-  --p-inv-accent: #a64d63; --p-inv-accent-ink: #f6f3ef; --p-inv-action: #a64d63; --p-inv-action-ink: #f6f3ef;
-  --font-display: "Urbanist", system-ui, sans-serif;
+  --p-bg: #FFF8F0; --p-surface: #FFEFF4; --p-ink: #1B1530; --p-muted: #5E5672;
+  --p-accent: #FF5C8A; --p-accent-ink: #1B1530; --p-action: #FF5C8A; --p-action-ink: #1B1530;
+  --p-inv-bg: #1B1530; --p-inv-surface: #2C2250; --p-inv-ink: #FFF8F0; --p-inv-muted: #C9BEDE;
+  --p-inv-accent: #FF5C8A; --p-inv-accent-ink: #1B1530; --p-inv-action: #FF5C8A; --p-inv-action-ink: #1B1530;
+  --font-display: "Pixelify Sans", "Urbanist", system-ui, sans-serif;
   --font-text: "Urbanist", system-ui, sans-serif;
   --font-mono: "DM Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
-  --display-weight: 500;
-  --display-tracking: -0.03em;
-  --display-tracking-xl: -0.04em;
+  --display-weight: 600;
+  --display-tracking: -0.015em;
+  --display-tracking-xl: -0.02em;
 }
 </style>
 <link rel="stylesheet" href="css/app-skin.css">
+<link rel="stylesheet" href="css/brand-pixel.css">
 <script>document.documentElement.classList.add('m-enter');setTimeout(()=>document.documentElement.classList.add('m-enter-done'),700)</script>
 <script src="assets/backgrounds/backgrounds.js"></script>
 <script>document.documentElement.classList.add('mo-js');setTimeout(()=>document.documentElement.classList.add('mo-safe'),2500)</script>
-<link rel="modulepreload" href="assets/moments/moments.js">
-<link rel="modulepreload" href="assets/moments/lib.js">
-<link rel="modulepreload" href="assets/moments/iris-opens/moment.js">
 </head>
 <body>
 <!-- type: software (kendi uygulaması: makyaj ve cilt bakımı içerik analizi)
@@ -82,10 +80,15 @@
       </div>
       <div class="nav__item"><a class="nav__link nav-tab" data-view="brands" href="#view-brands">Markalar</a></div>
       <div class="nav__item"><a class="nav__link nav-tab" data-view="analyzer" href="#view-analyzer">Analiz</a></div>
+      <div class="nav__item"><a class="nav__link nav-tab" data-view="guide" href="#view-guide">Rehber</a></div>
       <div class="nav__item"><a class="nav__link nav-tab" data-view="glossary" href="#view-glossary">Sözlük</a></div>
     </nav>
     <div class="nav__actions">
       <button type="button" id="compareOpenBtn" class="btn btn--secondary" hidden>Karşılaştır <span class="badge-count" id="compareCount">0</span></button>
+      <button type="button" id="themeToggle" class="px-theme-btn" aria-label="Tema değiştir" title="Açık / Koyu Tema">
+        <span class="icon-sun" aria-hidden="true">☀</span>
+        <span class="icon-moon" aria-hidden="true">☾</span>
+      </button>
       <a class="btn btn--primary" data-jump="scanner" href="#view-scanner">Barkod tara</a>
     </div>
     <button class="nav__toggle" type="button" aria-expanded="false" aria-label="Menü">
@@ -95,15 +98,46 @@
 </header>
 
 <main id="top">
+  <div class="px-band px-band--nav" aria-hidden="true"></div>
   <section class="hero hero--split" data-enter aria-labelledby="hero-h">
+    <div class="px-decor" aria-hidden="true">
+      <span class="px-decor-item" style="top:18px;right:6%;" data-pixel="sparkle" data-pixel-size="28"></span>
+      <span class="px-decor-item px-decor-item--2" style="top:90px;right:3%;" data-pixel="heart" data-pixel-size="26"></span>
+      <span class="px-decor-item px-decor-item--3" style="bottom:48px;right:4%;" data-pixel="lipstick" data-pixel-size="32"></span>
+      <span class="px-decor-item px-decor-item--4" style="bottom:22px;right:44%;" data-pixel="star" data-pixel-size="26"></span>
+      <span class="px-decor-item" style="top:24px;right:46%;" data-pixel="leaf" data-pixel-size="26"></span>
+      <span class="px-decor-item px-decor-item--2" style="bottom:36px;left:2%;" data-pixel="drop" data-pixel-size="24"></span>
+      <span class="px-decor-item px-decor-item--3" style="top:14px;left:3%;" data-pixel="sparkle" data-pixel-size="22"></span>
+      <span class="px-decor-item px-decor-item--4" style="top:52%;right:2%;" data-pixel="star" data-pixel-size="22"></span>
+    </div>
+
     <div class="wrap"><div class="hero-text grid hero__grid">
       <div class="hero__text span-5">
-        <p class="hero__kicker"><span class="dot" aria-hidden="true"></span>2.748 bileşenlik AB CosIng sözlüğü</p>
-        <h1 id="hero-h">Makyajın içeriğini barkodla okuyun</h1>
-        <p class="hero__lead">Barkodu okutun ya da ambalajdaki INCI listesini yapıştırın. Her bileşen resmi kaydıyla eşleşir; ürün 0–100 sağlık puanı ve vegan durumu alır.</p>
+        <p class="hero__kicker">
+          <span class="px-badge px-badge--pink">Piksel Lab · 2.748 bileşen</span>
+        </p>
+        <h1 id="hero-h">Makyajın zararlı mı? Piksel piksel öğren.</h1>
+        <p class="hero__lead">Barkodu okut ya da INCI listesini yapıştır: 0–100 sağlık puanı, vegan kontrolü ve cilt tipi uyumu anında çıksın. İstersen Rehber ile zararlı maddeleri kendin tanımayı öğren.</p>
+
+        <form id="heroQuickSearchForm" class="hero-quick-search" role="search" aria-label="Hızlı ürün ve içerik arama">
+          <input type="search" id="heroQuickSearchInput" class="search-input" list="makeyupSuggest" placeholder="Ruj, maskara, CeraVe, Paraben ara..." autocomplete="off">
+          <button type="submit" class="btn btn-primary">Ara</button>
+        </form>
+
+        <div class="hero-suggests" aria-label="Popüler aramalar">
+          <span class="hero-suggest-label">Popüler:</span>
+          <button type="button" class="hero-suggest-chip" data-hero-suggest="Ruj">Ruj</button>
+          <button type="button" class="hero-suggest-chip" data-hero-suggest="Maskara">Maskara</button>
+          <button type="button" class="hero-suggest-chip" data-hero-suggest="Güneş kremi">Güneş kremi</button>
+          <button type="button" class="hero-suggest-chip" data-hero-suggest="Vegan">Vegan</button>
+          <button type="button" class="hero-suggest-chip" data-hero-suggest="CeraVe">CeraVe</button>
+          <button type="button" class="hero-suggest-chip" data-hero-suggest="Golden Rose">Golden Rose</button>
+          <button type="button" class="hero-suggest-chip" data-hero-suggest="Paraben">Paraben</button>
+        </div>
+
         <div class="btn-row">
           <a class="btn btn--primary" href="#view-scanner" data-jump="scanner">Barkod tara<svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true"><path class="m-arrow__stem" d="M1 6h8"/><path class="m-arrow__head" d="M4.5 2.5 8 6l-3.5 3.5"/></svg></a>
-          <a class="btn btn--secondary" href="#view-analyzer" data-jump="analyzer">Liste yapıştır</a>
+          <a class="btn btn--secondary" href="#view-guide" data-jump="guide">Rehbere başla</a>
         </div>
         <dl class="hero-facts">
           <div><dt>Katalog</dt><dd>81.000+ ürün</dd></div>
@@ -111,47 +145,68 @@
           <div><dt>Puan</dt><dd>0–100</dd></div>
         </dl>
       </div>
-      <div class="hero__media span-6 start-7 my-report" role="img" aria-label="MakeYUP rapor ekranı: bir rujun sağlık puanı 64, karmin nedeniyle vegan değil, bileşenler risk seviyesiyle listelenmiş">
-        <div class="my-report__bar"><span class="ui-dots" aria-hidden="true"><i></i><i></i><i></i></span><span>Rapor <i>/</i> <b>Saten ruj, 3,5 g</b></span></div>
-        <div class="my-report__head">
-          <img src="assets/images/lipstick.jpg" alt="" fetchpriority="high">
-          <div class="my-report__title">
-            <span class="my-report__eyebrow">Dudak · 14 bileşen</span>
-            <strong>Saten ruj, kırmızı</strong>
-            <span class="my-tags"><span class="my-tag my-tag--no">Karmin içerir</span><span class="my-tag">Parfümlü</span></span>
+      <div class="hero-visual-col span-6 start-7">
+        <div class="hero-mascot-bubble">
+          <span data-pixel="yupi" data-pixel-size="72" data-pixel-title="Maskot Yupi"></span>
+          <div>
+            <strong>Selam! Ben Yupi</strong>
+            <span>Etiketi oku, pikseli gör.</span>
           </div>
-          <div class="my-score" style="--v:64"><span>64</span><small>/100</small></div>
         </div>
-        <ul class="my-rows">
-          <li><b>Ricinus Communis Seed Oil</b><span>Hint yağı · bitkisel</span><em class="is-safe">Güvenli</em></li>
-          <li><b>Cera Alba</b><span>Balmumu · hayvansal</span><em class="is-mid">Vegan değil</em></li>
-          <li><b>CI 75470</b><span>Karmin · hayvansal</span><em class="is-mid">Vegan değil</em></li>
-          <li><b>Parfum</b><span>Koku · sentetik</span><em class="is-mid">Dikkat</em></li>
-          <li><b>Tocopherol</b><span>E vitamini · bitkisel</span><em class="is-safe">Güvenli</em></li>
-          <li><b>Propylparaben</b><span>Koruyucu · sentetik</span><em class="is-high">Riskli</em></li>
-        </ul>
+        <div class="px-frame">
+          <div class="hero__media my-report" role="img" aria-label="MakeYUP rapor ekranı: bir rujun sağlık puanı 64, karmin nedeniyle vegan değil, bileşenler risk seviyesiyle listelenmiş">
+            <div class="my-report__bar"><span class="ui-dots" aria-hidden="true"><i></i><i></i><i></i></span><span>Rapor <i>/</i> <b>Saten ruj, 3,5 g</b></span></div>
+            <div class="my-report__head">
+              <img src="assets/images/lipstick.jpg" alt="" fetchpriority="high">
+              <div class="my-report__title">
+                <span class="my-report__eyebrow">Dudak · 14 bileşen</span>
+                <strong>Saten ruj, kırmızı</strong>
+                <span class="my-tags"><span class="my-tag my-tag--no">Karmin içerir</span><span class="my-tag">Parfümlü</span></span>
+              </div>
+              <div class="my-score" style="--v:64"><span>64</span><small>/100</small></div>
+            </div>
+            <ul class="my-rows">
+              <li><b>Ricinus Communis Seed Oil</b><span>Hint yağı · bitkisel</span><em class="is-safe">Güvenli</em></li>
+              <li><b>Cera Alba</b><span>Balmumu · hayvansal</span><em class="is-mid">Vegan değil</em></li>
+              <li><b>CI 75470</b><span>Karmin · hayvansal</span><em class="is-mid">Vegan değil</em></li>
+              <li><b>Parfum</b><span>Koku · sentetik</span><em class="is-mid">Dikkat</em></li>
+              <li><b>Tocopherol</b><span>E vitamini · bitkisel</span><em class="is-safe">Güvenli</em></li>
+              <li><b>Propylparaben</b><span>Koruyucu · sentetik</span><em class="is-high">Riskli</em></li>
+            </ul>
+          </div>
+        </div>
       </div>
     </div></div>
   </section>
 
-  <section class="section ground-inverse" id="puan" data-moment="iris-opens" data-moment-opts='{"from": "base"}' aria-labelledby="puan-h">
+  <div class="px-band" aria-hidden="true"></div>
+  <section class="section ground-inverse" id="puan" aria-labelledby="puan-h">
     <div class="wrap">
       <div class="section-head">
         <h2 id="puan-h">Sağlık puanı üç bantta okunur. <span class="muted">Her bilgi bileşenin CosIng kaydından gelir.</span></h2>
       </div>
       <div class="grid">
         <div class="span-4 my-band">
-          <p class="t-stat my-band__n is-safe">78–100</p>
+          <div class="my-band-top">
+            <p class="t-stat my-band__n is-safe">78–100</p>
+            <span class="px-lights" aria-hidden="true"><i class="px-light px-light--mint is-on"></i><i class="px-light px-light--lemon"></i><i class="px-light px-light--tomato"></i></span>
+          </div>
           <h3>Temiz formül</h3>
           <p>Cilt dostu bileşenler. Paraben, talk ve formaldehit salıcı yok.</p>
         </div>
         <div class="span-4 my-band">
-          <p class="t-stat my-band__n is-mid">52–77</p>
+          <div class="my-band-top">
+            <p class="t-stat my-band__n is-mid">52–77</p>
+            <span class="px-lights" aria-hidden="true"><i class="px-light px-light--mint"></i><i class="px-light px-light--lemon is-on"></i><i class="px-light px-light--tomato"></i></span>
+          </div>
           <h3>Dikkatli kullanım</h3>
           <p>Parfüm, silikon ya da hassas ciltte tahriş yapabilen maddeler var.</p>
         </div>
         <div class="span-4 my-band">
-          <p class="t-stat my-band__n is-high">0–51</p>
+          <div class="my-band-top">
+            <p class="t-stat my-band__n is-high">0–51</p>
+            <span class="px-lights" aria-hidden="true"><i class="px-light px-light--mint"></i><i class="px-light px-light--lemon"></i><i class="px-light px-light--tomato is-on"></i></span>
+          </div>
           <h3>Riskli içerik</h3>
           <p>Paraben, talk veya BHT gibi kaçınılması önerilen maddeler var.</p>
         </div>
@@ -177,10 +232,21 @@
           <h2 id="global-heading">Dünya kataloğu. <span class="muted">Marka, kategori ya da ürün adıyla arayın.</span></h2>
         </div>
         <div class="section-head-right">
+          <div class="global-sort-wrap">
+            <label for="globalSortSelect">Sırala</label>
+            <select id="globalSortSelect" class="px-select">
+              <option value="popular">En sevilenler</option>
+              <option value="health">Sağlık puanı (yüksek→düşük)</option>
+              <option value="clean-vegan">Önce vegan + temiz</option>
+              <option value="az">A→Z</option>
+            </select>
+          </div>
           <button type="button" class="chip chip-toggle" id="globalGroupByBrandBtn" aria-pressed="false">Marka marka grupla</button>
           <div class="result-counter" id="globalCount">Yükleniyor</div>
         </div>
       </div>
+
+      <div id="favStrip" class="fav-strip" hidden aria-label="Favori ürünlerim"></div>
 
       <div id="globalBrandsStrip" class="brand-strip" role="group" aria-label="Popüler markalar"></div>
 
@@ -189,7 +255,7 @@
           <div class="search-wrap">
             <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
             <label class="input-label" for="globalSearchInput">Marka veya ürün</label>
-            <input type="search" id="globalSearchInput" class="search-input" placeholder="CeraVe, The Ordinary, güneş kremi" autocomplete="off">
+            <input type="search" id="globalSearchInput" class="search-input" list="makeyupSuggest" placeholder="CeraVe, The Ordinary, güneş kremi" autocomplete="off">
           </div>
           <button type="submit" class="btn btn-primary">Katalogda ara</button>
         </form>
@@ -359,6 +425,21 @@
     </div>
   </section>
 
+  <!-- GÖRÜNÜM 4.5: REHBER (EĞİTİM & ETİKET DEDEKTİFİ) -->
+  <section id="view-guide" class="section view-section" style="--h: 2" aria-labelledby="guide-heading" hidden>
+    <div class="wrap">
+      <div class="section-head app-head">
+        <div>
+          <h2 id="guide-heading">Rehber. <span class="muted">Zararlı içeriği kendin tanı.</span></h2>
+        </div>
+        <span class="px-badge px-badge--lemon">6 ders · 6 soruluk test</span>
+      </div>
+      <div id="guideProgress"></div>
+      <div id="guideLessons" class="guide-lessons-grid"></div>
+      <div id="guideQuiz"></div>
+    </div>
+  </section>
+
   <!-- GÖRÜNÜM 5: SÖZLÜK -->
   <section id="view-glossary" class="section view-section" style="--h: 2" aria-labelledby="glossary-heading" hidden>
     <div class="wrap">
@@ -420,6 +501,7 @@
   </div>
 </dialog>
 
+<div class="px-band" aria-hidden="true"></div>
 <footer class="footer closing footer--statement" id="contact" aria-labelledby="close-h">
   <div class="wrap">
     <div class="closing__cta close--word">
@@ -435,7 +517,7 @@
           <a class="nav__logo" href="#top">MakeYUP</a>
           <p class="footer__lede">Makyaj ve cilt bakımı ürünleri için açık kaynak içerik rehberi. Değerlendirmeler bilgi amaçlıdır, dermatolojik tanının yerini tutmaz.</p>
         </div>
-        <div class="span-2 start-7 footer__col"><h3>Uygulama</h3><ul><li><a href="#view-global" data-jump="global">Katalog</a></li><li><a href="#view-brands" data-jump="brands">Markalar</a></li><li><a href="#view-glossary" data-jump="glossary">Sözlük</a></li></ul></div>
+        <div class="span-2 start-7 footer__col"><h3>Uygulama</h3><ul><li><a href="#view-global" data-jump="global">Katalog</a></li><li><a href="#view-brands" data-jump="brands">Markalar</a></li><li><a href="#view-guide" data-jump="guide">Rehber</a></li><li><a href="#view-glossary" data-jump="glossary">Sözlük</a></li></ul></div>
         <div class="span-2 footer__col"><h3>Araçlar</h3><ul><li><a href="#view-scanner" data-jump="scanner">Barkod tarama</a></li><li><a href="#view-analyzer" data-jump="analyzer">İçerik analizi</a></li></ul></div>
         <div class="span-2 footer__col"><h3>Kaynaklar</h3><ul><li><a href="https://ec.europa.eu/growth/tools-databases/cosing/" rel="noopener">AB CosIng</a></li><li><a href="https://world.openbeautyfacts.org/" rel="noopener">Open Beauty Facts</a></li></ul></div>
       </div>
@@ -446,14 +528,16 @@
   </div>
 </footer>
 
+<datalist id="makeyupSuggest"></datalist>
+
 <button type="button" id="scrollTopBtn" class="scroll-top-btn" hidden aria-label="Yukarı çık">↑</button>
 
 <nav class="mobile-bottom-nav" aria-label="Mobil alt menü">
-  <button type="button" class="mobile-nav-item is-active" data-view="global"><span class="mobile-nav-icon" aria-hidden="true">🌍</span><span>Keşfet</span></button>
-  <button type="button" class="mobile-nav-item" data-view="brands"><span class="mobile-nav-icon" aria-hidden="true">🏷️</span><span>Markalar</span></button>
-  <button type="button" class="mobile-nav-item mobile-nav-scan" data-view="scanner"><span class="mobile-nav-scan-pill" aria-hidden="true">📷</span><span>Tara</span></button>
-  <button type="button" class="mobile-nav-item" data-view="analyzer"><span class="mobile-nav-icon" aria-hidden="true">🧪</span><span>Analiz</span></button>
-  <button type="button" class="mobile-nav-item" data-view="glossary"><span class="mobile-nav-icon" aria-hidden="true">📖</span><span>Sözlük</span></button>
+  <button type="button" class="mobile-nav-item is-active" data-view="global"><span class="mobile-nav-icon" data-pixel="magnifier" data-pixel-size="22" aria-hidden="true"></span><span>Keşfet</span></button>
+  <button type="button" class="mobile-nav-item" data-view="guide"><span class="mobile-nav-icon" data-pixel="book" data-pixel-size="22" aria-hidden="true"></span><span>Rehber</span></button>
+  <button type="button" class="mobile-nav-item mobile-nav-scan" data-view="scanner"><span class="mobile-nav-scan-pill" data-pixel="camera" data-pixel-size="24" aria-hidden="true"></span><span>Tara</span></button>
+  <button type="button" class="mobile-nav-item" data-view="analyzer"><span class="mobile-nav-icon" data-pixel="drop" data-pixel-size="22" aria-hidden="true"></span><span>Analiz</span></button>
+  <button type="button" class="mobile-nav-item" data-view="glossary"><span class="mobile-nav-icon" data-pixel="star" data-pixel-size="22" aria-hidden="true"></span><span>Sözlük</span></button>
 </nav>
 
 <script type="module" src="assets/system.js"></script>
