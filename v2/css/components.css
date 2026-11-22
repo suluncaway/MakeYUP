@@ -208,7 +208,7 @@
 .buy-more { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; font-size: 13px; color: var(--muted); }
 .buy-alt { display: inline-flex; align-items: center; gap: 4px; min-height: var(--tap); padding: 0 8px; font-weight: 700; color: var(--accent); text-decoration: none; }
 .buy-disc { font-size: 12px; color: var(--muted); }
-.buy-disc summary { cursor: pointer; min-height: 32px; display: flex; align-items: center; }
+.buy-disc summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; }
 .buy-disc p { margin-top: 4px; }
 
 /* ---------- Generic card / panel ---------- */

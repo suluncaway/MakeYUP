@@ -295,7 +295,7 @@ export function ingredientRow(item, { glossaryLink = true } = {}) {
         ${tags ? `<div class="ftags">${tags}</div>` : ""}
         ${it.summaryTr ? `<p>${e(it.summaryTr)}</p>` : ""}
         ${facts.length ? `<dl class="ing-facts">${facts.map(([k, v]) => `<div><dt>${e(k)}</dt><dd>${e(v)}</dd></div>`).join("")}</dl>` : ""}
-        ${glossaryLink && inciKey ? `<a class="ing-more" href="#/sozluk/${enc(inciKey.toLowerCase())}">Sözlükte aç ${icon("chevron", { size: 14 })}</a>` : ""}
+        ${glossaryLink && inciKey ? `<a class="ing-more" href="#/sozluk/${glossarySlug(inciKey)}">Sözlükte aç ${icon("chevron", { size: 14 })}</a>` : ""}
       </div>
     </details>
   </li>`;
@@ -358,4 +358,16 @@ export function buyPanel(product, { label = "Satın al" } = {}) {
     }
     <details class="buy-disc"><summary>Reklam / İş birliği · bağlantılar ortaklık bağlantısı olabilir</summary><p>${e(affiliateDisclosure())}</p></details>
   </div>`;
+}
+
+/** Sözlük adres parçası: küçük harf, boşluk → "-", [a-z0-9-] dışı atılır (glossary.js ile aynı kural). */
+export function glossarySlug(inci) {
+  return String(inci || "")
+    .replace(/İ/g, "i")
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
 }

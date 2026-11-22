@@ -64,7 +64,7 @@ export default {
 |---|---|
 | `route(pattern, handler)` | Registers a route; patterns look like `"#/urun/:id"`. |
 | `start()` | Starts routing (called by `main.js`). |
-| `navigate(hash, { replace })` | `replace: true` replaces the current entry. Use it, for example, when a scanner hit opens a product, so Back returns to the scanner. |
+| `navigate(hash, { replace })` | `replace: true` replaces the current entry. Use it for redirects only; a scanner hit opening a product should be a normal push so Back returns to the scanner. |
 | `updateQuery(obj, { merge })` | **Use this for search/filter changes.** It rewrites `?q=…&f=…` with no new history entry and no re-render. |
 | `back(fallback = "#/")` | In-app back. Goes to `fallback` when the page was opened cold from a deep link. |
 | `current()` | Returns `{ hash, path, pattern, params, query }`. |
