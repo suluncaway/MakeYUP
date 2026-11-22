@@ -1,0 +1,200 @@
+/* MakeYUP app skin: the app's own parts drawn with the kit's tokens (system.css),
+   so the catalog, scanner, analyzer and dialogs share one ground, ink, accent, radius and button look. */
+
+:root,
+[data-theme="light"] {
+  --bg-page: var(--p-bg);
+  --bg-surface: #fbf9f6;
+  --bg-subtle: var(--p-surface);
+  --bg-elevated: #fbf9f6;
+  --bg-studio: var(--p-surface);
+  --bg-studio-end: var(--p-surface);
+  --text-primary: var(--p-ink);
+  --text-secondary: #4a4541;
+  --text-muted: var(--p-muted);
+  --border-subtle: rgba(29, 25, 22, 0.12);
+  --border-strong: rgba(29, 25, 22, 0.2);
+  --accent: var(--p-accent);
+  --accent-hover: #8d3c51;
+  --accent-soft: rgba(166, 77, 99, 0.1);
+  --accent-glow: transparent;
+  --botanical-glow: transparent;
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: 0 24px 60px rgba(29, 25, 22, 0.18);
+  --shadow-card-hover: none;
+  --radius-sm: var(--r-sm, 8px);
+  --radius-md: var(--r-md, 12px);
+  --radius-lg: var(--r-lg, 20px);
+  --radius-pill: var(--r-sm, 8px);
+  --font-sans: var(--font-text);
+}
+
+body { font-family: var(--font-text); }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* the old hero's glow belongs to the replaced hero */
+.hero::before { content: none; }
+
+/* one button system: the app's buttons take the kit's look */
+.btn-primary, .btn-outline, .btn-soft, .btn-ghost {
+  min-height: 44px;
+  border-radius: var(--r-btn, 8px);
+  box-shadow: none;
+  font-size: 16px;
+  font-weight: 500;
+  padding: 0 24px;
+}
+.btn-primary { background: var(--action); color: var(--action-ink); border: 1px solid var(--action); }
+.btn-primary:hover { background: var(--accent-hover); transform: none; }
+.btn-outline, .btn-soft, .btn-ghost {
+  background: transparent; color: var(--ink); border: 1px solid var(--border-strong);
+}
+.btn-outline:hover, .btn-soft:hover, .btn-ghost:hover { background: var(--p-surface); }
+.btn-sm { min-height: 44px; font-size: 14px; padding: 0 16px; }
+
+.chip { min-height: 44px; border-radius: var(--r-sm, 8px); box-shadow: none; }
+.search-input { min-height: 48px; font-size: 16px; }
+.search-input--plain { padding-left: 1rem; }
+
+/* app views open at two screens and grow when the visitor asks for more results */
+main > section.view-section { height: auto; min-height: calc(var(--h, 1) * 100svh); }
+
+/* app sections: the kit's section rhythm; their h2 at the kit's scale */
+.view-section { padding-top: var(--padt); padding-bottom: var(--padb); }
+.app-head h2 { font-family: var(--font-display); font-size: var(--t-h2); font-weight: var(--display-weight); letter-spacing: var(--display-tracking); margin: 0; }
+.app-head { align-items: flex-end; margin-bottom: var(--s-7, 48px); }
+
+/* app cards: flat, one hairline */
+.product-card, .brand-section, .brand-card, .glossary-card, .analyzer-input-card,
+.analyzer-result-card, .filter-panel, .skeleton-card {
+  box-shadow: none;
+  border-color: var(--border-subtle);
+}
+
+/* bands in #puan */
+.my-band .my-band__n { margin: 0 0 var(--s-5, 24px); font-family: var(--font-mono); }
+.my-band h3 { margin: 0 0 var(--s-3, 12px); }
+.my-band p { margin: 0; }
+.my-band__n.is-safe { color: #7fd6a6; }
+.my-band__n.is-mid { color: #f0c46a; }
+.my-band__n.is-high { color: #f39a9a; }
+
+/* the hero's live report window (page CSS inside the visual) */
+.my-report {
+  display: flex; flex-direction: column;
+  background: #fbf9f6;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-lg, 20px);
+  overflow: hidden;
+  font-size: 15px;
+}
+.my-report__bar {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 20px; border-bottom: 1px solid var(--border-subtle);
+  font-size: 13px; color: var(--p-muted);
+}
+.my-report__bar i { font-style: normal; opacity: .5; }
+.my-report__bar b { color: var(--p-ink); font-weight: 500; }
+.my-report__head {
+  display: grid; grid-template-columns: 96px 1fr auto; gap: 20px; align-items: center;
+  padding: 24px; border-bottom: 1px solid var(--border-subtle);
+}
+.my-report__head img { width: 96px; height: 96px; object-fit: cover; border-radius: var(--r-md, 12px); }
+.my-report__title { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.my-report__title strong { font-size: 20px; font-weight: 500; }
+.my-report__eyebrow { font-size: 13px; color: var(--p-muted); }
+.my-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.my-tag { font-size: 13px; padding: 2px 8px; border-radius: 6px; background: var(--p-surface); }
+.my-tag--no { background: #f6e3e7; color: #8a2f45; }
+.my-score {
+  --v: 64;
+  width: 84px; height: 84px; border-radius: 50%;
+  display: grid; place-content: center; text-align: center;
+  background:
+    radial-gradient(closest-side, #fbf9f6 82%, transparent 83%),
+    conic-gradient(#b8740d calc(var(--v) * 1%), var(--p-surface) 0);
+  font-family: var(--font-mono);
+}
+.my-score span { font-size: 24px; line-height: 1; }
+.my-score small { font-size: 13px; color: var(--p-muted); }
+.my-rows { list-style: none; margin: 0; padding: 8px 24px 16px; overflow: hidden; flex: 1; }
+.my-rows li {
+  display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto; column-gap: 16px;
+  padding: 12px 0; border-bottom: 1px solid var(--border-subtle);
+}
+.my-rows b { font-family: var(--font-mono); font-weight: 400; font-size: 14px; }
+.my-rows span { font-size: 13px; color: var(--p-muted); grid-row: 2; }
+.my-rows em {
+  grid-row: 1 / span 2; grid-column: 2; align-self: center;
+  font-style: normal; font-size: 13px; padding: 4px 10px; border-radius: 6px;
+}
+.my-rows .is-safe { background: #e1f0e7; color: #1b5e3f; }
+.my-rows .is-mid { background: #f7ecd6; color: #7a4a05; }
+.my-rows .is-high { background: #f6e0e0; color: #8f2222; }
+
+@media (max-width: 639px) {
+  .my-report__head { grid-template-columns: 64px 1fr auto; gap: 12px; padding: 16px; }
+  .my-report__head img { width: 64px; height: 64px; }
+  .my-score { width: 64px; height: 64px; }
+  .my-score span { font-size: 18px; }
+  .my-rows { padding: 4px 16px 8px; }
+  .my-rows li:nth-child(n+2) { display: none; }
+  .my-report__title strong { font-size: 16px; }
+}
+
+.brand-strip { align-items: center; padding-block: 4px 8px; }
+.brand-pill { min-height: 44px; height: auto; line-height: 1.2; box-shadow: none; overflow: visible; }
+.brand-pill.is-active { box-shadow: none; }
+
+/* the nav words: the kit's links, never the old tab pills */
+.nav__link.nav-tab, .nav__link.nav-tab.is-active { background: none; box-shadow: none; padding: 0; border-radius: 0; font-size: inherit; font-weight: inherit; color: inherit; }
+
+/* on states of chips and brand shortcuts: an outline, never a third filled button */
+.chip.is-active, .chip[aria-pressed="true"], .brand-pill.is-active {
+  background: transparent; color: var(--ink); border-color: var(--ink); font-weight: 600; box-shadow: none;
+}
+.btn-primary { border: 0; }
+
+/* the search panel sits open on the wrap's lines */
+.filter-panel { padding: 0; border: 0; background: none; box-shadow: none; }
+
+.global-search-row { display: flex; gap: 12px; align-items: center; }
+.global-search-row .search-wrap { flex: 0 1 620px; }
+
+/* the closing word: Host Grotesk's capitals need a full line box */
+.close__word { line-height: 1; }
+
+.card-desc { display: block; -webkit-line-clamp: unset; overflow: visible; }
+
+/* text contrast for the middle band (4.5:1 on the light grounds) */
+:root, [data-theme="light"] { --moderate: #8a5200; --check: #7a5200; }
+.tag-moderate { color: #7a4a05; }
+
+/* brand shortcuts wrap on the wrap's lines */
+.brand-strip { flex-wrap: wrap; overflow: visible; }
+.load-more-wrap { margin-top: var(--s-7, 48px); display: flex; justify-content: center; }
+.input-label { display: block; font-size: 14px; font-weight: 500; margin: 0 0 8px; }
+
+/* #puan: open columns on the dark ground, a hairline above each */
+.my-band { border-top: 1px solid rgba(246, 243, 239, .18); padding-top: var(--s-5, 24px); margin-bottom: var(--s-7, 48px); }
+
+/* the second row in #puan */
+.my-list { list-style: none; margin: var(--s-5, 24px) 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.my-list li { font-size: 14px; padding: 6px 12px; border-radius: 6px; border: 1px solid rgba(246, 243, 239, .18); font-family: var(--font-mono); }
+
+/* phones: filters wrap inside the screen instead of scrolling sideways */
+.filter-panel, .filter-groups, .filter-group, .global-search-row, .search-wrap { min-width: 0; max-width: 100%; }
+@media (max-width: 768px) {
+  .filter-group { flex-wrap: wrap; overflow: visible; }
+  .brand-strip { max-width: 100%; }
+  .app-head { margin-bottom: var(--s-6, 32px); }
+}
+
+/* the app's phone bar sits under the kit's sheet menu */
+.mobile-bottom-nav { z-index: 9; }
+.mobile-nav-item { min-height: 48px; }

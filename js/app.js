@@ -294,7 +294,7 @@ function renderAnalysisReport(analysis, options = {}) {
     </div>
 
     <div class="inci-list-header">
-      <h4>Detaylı İçerik Listesi (${filteredItems.length} / ${analysis.counts.total})</h4>
+      <h3>Detaylı İçerik Listesi (${filteredItems.length} / ${analysis.counts.total})</h3>
       <div class="filter-group" data-report-filter-group="${escapeHtml(containerPrefix)}">
         <button type="button" class="chip chip-sm ${filter === "all" ? "is-active" : ""}" data-inci-filter="all">Tümü</button>
         <button type="button" class="chip chip-sm ${filter === "high" ? "is-active" : ""}" data-inci-filter="high">Riskli (${analysis.counts.high})</button>
@@ -371,7 +371,7 @@ const state = {
   globalQuery: "",
   globalBrand: "",
   globalCategoryId: "all",
-  globalGroupByBrand: true,
+  globalGroupByBrand: false,
   globalOnlyWithInci: false,
   globalOnlyVegan: false,
   globalPage: 1,
@@ -539,7 +539,7 @@ function renderProductCard(p) {
             <span>${escapeHtml(p.brand)} · ${escapeHtml(p.categoryLabel)}</span>
             ${p.crueltyFree ? `<span>🐰 Cruelty-Free</span>` : ""}
           </div>
-          <h4 class="card-title">${escapeHtml(p.name)}</h4>
+          <h3 class="card-title">${escapeHtml(p.name)}</h3>
           <p class="card-desc">${escapeHtml(p.description)}</p>
         </div>
 
@@ -634,7 +634,7 @@ function renderCatalog() {
             : "tag-check";
 
         return `
-          <section class="brand-section" aria-label="${escapeHtml(brand.name)} ürünleri">
+          <div class="brand-section" role="group" aria-label="${escapeHtml(brand.name)} ürünleri">
             <div class="brand-section-header">
               <div class="brand-section-identity">
                 <div class="brand-avatar" style="background:${escapeHtml(brand.accentColor)};">
@@ -659,7 +659,7 @@ function renderCatalog() {
             <div class="product-grid">
               ${items.map(renderProductCard).join("")}
             </div>
-          </section>
+          </div>
         `;
       })
       .join("");
@@ -981,13 +981,11 @@ function switchView(viewName) {
 // Tema Yönetimi (Açık / Koyu)
 // ============================================================
 function initTheme() {
-  const saved = localStorage.getItem("makeyup-theme");
-  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-  const initial = saved || (prefersDark ? "dark" : "light");
-  document.documentElement.dataset.theme = initial;
+  // Yeni tasarım tek, açık bir görünüm sistemi kullanır.
+  document.documentElement.dataset.theme = "light";
 }
 
-themeToggleBtn.addEventListener("click", () => {
+themeToggleBtn?.addEventListener("click", () => {
   const current = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
   const next = current === "dark" ? "light" : "dark";
   document.documentElement.dataset.theme = next;
@@ -1507,15 +1505,19 @@ function renderGlobalResults() {
     ? state.globalTotalCount.toLocaleString("tr-TR")
     : String(visible.length);
 
-  globalCountEl.textContent = state.globalLoading && state.globalItems.length === 0
-    ? "Ürünler yükleniyor..."
-    : state.globalTotalCount > visible.length
-    ? `${visible.length} ürün gösteriliyor (${totalFormatted} arşiv kaydı · kaydırdıkça yüklenir)`
-    : `${visible.length} ürün gösteriliyor`;
+  // Ekranda bir seferde 12 ürün; daha fazlası düğmeyle açılır (indirilen sayfa 100'lük kalır).
+  const shownCount = Math.min(state.globalShown || 3, visible.length);
+  const hiddenLocal = visible.length - shownCount;
+  visible = visible.slice(0, shownCount);
 
-  globalLoadMoreWrapEl.hidden = !state.globalHasMore;
-  if (state.globalHasMore && !state.globalLoading) {
-    globalLoadMoreBtn.textContent = `Sonraki 100 Ürünü Yükle (${visible.length} / ${totalFormatted})`;
+  globalCountEl.textContent = state.globalLoading && state.globalItems.length === 0
+    ? "Ürünler yükleniyor"
+    : `${shownCount} / ${totalFormatted} ürün`;
+
+  globalLoadMoreWrapEl.hidden = !(hiddenLocal > 0 || state.globalHasMore);
+  if (!state.globalLoading) {
+    globalLoadMoreBtn.disabled = false;
+    globalLoadMoreBtn.textContent = "Daha fazla ürün göster";
   }
 
   if (state.globalLoading && state.globalItems.length === 0) {
@@ -1555,7 +1557,7 @@ function renderGlobalResults() {
         const veganCount = analyzed.filter((x) => x.analysis.veganStatus === "vegan").length;
 
         return `
-          <section class="brand-section" aria-label="${escapeHtml(brandName)} ürünleri">
+          <div class="brand-section" role="group" aria-label="${escapeHtml(brandName)} ürünleri">
             <div class="brand-section-header">
               <div class="brand-section-identity">
                 <div class="brand-avatar" style="background:${hashColor(brandName)};">
@@ -1583,7 +1585,7 @@ function renderGlobalResults() {
             <div class="product-grid">
               ${items.map(renderProductCard).join("")}
             </div>
-          </section>
+          </div>
         `;
       })
       .join("");
@@ -1604,6 +1606,7 @@ async function fetchGlobalCatalog({ append = false } = {}) {
   state.globalLoading = true;
   if (!append) {
     state.globalItems = [];
+    state.globalShown = 3;
     renderGlobalResults();
   } else {
     globalLoadMoreBtn.disabled = true;
@@ -1745,11 +1748,17 @@ globalOnlyVeganBtn.addEventListener("click", () => {
 });
 
 globalLoadMoreBtn.addEventListener("click", () => {
-  fetchGlobalCatalog({ append: true });
+  const shown = state.globalShown || 3;
+  state.globalShown = shown + 12;
+  if (state.globalShown > state.globalItems.length && state.globalHasMore) {
+    fetchGlobalCatalog({ append: true });
+  } else {
+    renderGlobalResults();
+  }
 });
 
-// Aşağı kaydırdıkça otomatik olarak sonraki ürünleri yükle (Infinite Scroll)
-if ("IntersectionObserver" in window) {
+// Otomatik yükleme kapalı: sayfa yalnız ziyaretçi istediğinde uzar.
+if (false && "IntersectionObserver" in window) {
   const infiniteObserver = new IntersectionObserver(
     (entries) => {
       for (const entry of entries) {
